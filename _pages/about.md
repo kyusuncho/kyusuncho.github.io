@@ -22,4 +22,4 @@ I am an Integrated Masters+PhD Student at Department of Computer Science and Eng
 
 I work on 3D computer vision and 3D synthesis to solve problems in grapphics and multi-modal computer vision. Since 2021, I have been a member of the [Computer Vision Lab](https://cvlab.kaist.ac.kr/home), under the guidance of Professor Seungryong Kim. I began my graduate studies in March 2022. I did my undergrad at the Statistics Department of Korea University.
 
-I am interested in 3D avatar synthesis and controlling them with multi-modal inputs. I am currently looking for interships and opportunities to talk to senior AI reserchers in the same field. Feel free to contact me via e-mail [kyustorm7@korea.ac.kr](kyustorm7@korea.ac.kr).
+I am interested in synthesizing 3D avatars from images and controlling them with multi-modal inputs. I am currently looking for interships and opportunities to talk to senior AI reserchers in the same field. Feel free to contact me via e-mail [kyustorm7@korea.ac.kr](kyustorm7@korea.ac.kr).
