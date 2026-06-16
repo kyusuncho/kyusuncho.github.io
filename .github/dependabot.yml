@@ -1,20 +1,11 @@
 version: 2
 updates:
-- package-ecosystem: npm
-  directory: "/"
-  schedule:
-    interval: daily
-    time: "10:00"
-  open-pull-requests-limit: 10
-- package-ecosystem: bundler
-  directory: "/"
-  schedule:
-    interval: daily
-    time: "10:00"
-  open-pull-requests-limit: 10
+# Keep the GitHub Actions used by the Pages deploy workflow current.
+# (npm + bundler ecosystems are intentionally omitted: this repo is used as
+# site content, not as the just-the-docs gem, so dev/test dependency bumps
+# only created noise. Re-add them if you start developing the theme itself.)
 - package-ecosystem: "github-actions"
   directory: "/"
   schedule:
-    interval: daily
-    time: "10:00"
-  open-pull-requests-limit: 10
+    interval: weekly
+  open-pull-requests-limit: 5
