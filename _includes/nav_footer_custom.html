@@ -1,0 +1,54 @@
+<div class="social-icons">
+  <button type="button" class="social-icon js-toggle-dark-mode" aria-label="Toggle dark mode">
+    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <title>Toggle dark mode</title>
+      <circle cx="12" cy="12" r="9"></circle>
+      <path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"></path>
+    </svg>
+  </button>
+
+  <a class="social-icon" href="https://github.com/kyusuncho" target="_blank" rel="noopener" aria-label="GitHub">
+    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <title>GitHub</title>
+      <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+    </svg>
+  </a>
+
+  <a class="social-icon" href="mailto:kyustorm7@gmail.com" aria-label="Email">
+    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <title>Email</title>
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+      <polyline points="22,6 12,13 2,6"></polyline>
+    </svg>
+  </a>
+
+  <a class="social-icon" href="https://scholar.google.com/citations?user=ToQ-jEIAAAAJ&hl=en" target="_blank" rel="noopener" aria-label="Google Scholar">
+    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <title>Google Scholar</title>
+      <path d="M22 9 12 4 2 9l10 5 10-5z"></path>
+      <path d="M6 11.5V16c0 1.66 2.69 3 6 3s6-1.34 6-3v-4.5"></path>
+      <line x1="22" y1="9" x2="22" y2="14"></line>
+    </svg>
+  </a>
+</div>
+
+<script>
+  (function () {
+    if (window.__jtdThemeToggleBound) return; /* this include renders twice (sidebar + mobile footer) */
+    window.__jtdThemeToggleBound = true;
+
+    function apply(theme) {
+      jtd.setTheme(theme);
+      try { localStorage.setItem('jtd-theme', theme); } catch (e) {}
+    }
+
+    jtd.addEvent(document, 'DOMContentLoaded', function () {
+      var buttons = document.querySelectorAll('.js-toggle-dark-mode');
+      for (var i = 0; i < buttons.length; i++) {
+        jtd.addEvent(buttons[i], 'click', function () {
+          apply(jtd.getTheme() === 'dark' ? 'light' : 'dark');
+        });
+      }
+    });
+  })();
+</script>

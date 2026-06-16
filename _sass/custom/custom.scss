@@ -1,0 +1,286 @@
+// custom SCSS (or CSS) goes here
+
+// Sidebar-footer social/utility buttons (theme toggle, GitHub, email, Scholar).
+// Rendered via _includes/nav_footer_custom.html in both the desktop sidebar and
+// the mobile page footer.
+.social-icons {
+  display: flex;
+  align-items: center;
+  gap: $sp-3;
+  margin-top: $sp-3;
+}
+
+.social-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: $sp-6;
+  height: $sp-6;
+  padding: 0;
+  border: $border $border-color;
+  border-radius: 50%;
+  color: $link-color;
+  background-color: transparent;
+  cursor: pointer;
+  // Compositor-friendly properties only.
+  transition: color $transition-duration ease, background-color $transition-duration ease,
+    transform $transition-duration ease;
+
+  svg {
+    width: $sp-4;
+    height: $sp-4;
+  }
+
+  &:hover {
+    color: $body-background-color;
+    background-color: $link-color;
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $link-color;
+    outline-offset: 2px;
+  }
+}
+
+// Homepage intro photo: floated so the intro text wraps fluidly around it.
+.profile-photo {
+  float: left;
+  width: 220px;
+  max-width: 40%;
+  height: auto;
+  margin: $sp-1 $sp-5 $sp-3 0;
+  border-radius: $border-radius;
+}
+
+// Uniform treatment for publication teaser images: every teaser fills the
+// content column at a consistent size, regardless of its native dimensions.
+.pub-teaser {
+  display: block;
+  clear: both;
+  width: 100%;
+  height: auto;
+  margin: $sp-4 0;
+  border-radius: $border-radius;
+}
+
+// Two-column section (Education / Work Experience), stacks on narrow screens.
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $sp-6;
+  clear: both;
+
+  > div > :first-child {
+    margin-top: 0;
+  }
+
+  @media (max-width: 50rem) {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+// Clean section dividers on the homepage.
+.main-content hr {
+  height: 0;
+  margin: $sp-6 0;
+  border: 0;
+  border-top: $border $border-color;
+}
+
+// Section headings inside the CV columns become accent "eyebrows" so the two
+// columns read as designed sections rather than plain headings.
+.two-col h2 {
+  margin-bottom: $sp-3;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: $link-color;
+}
+
+// CV entry cards: accent rail + tinted surface give each Education / Work
+// entry a clear, scannable highlight instead of flat bold text.
+.cv-entry {
+  margin-bottom: $sp-3;
+  padding: $sp-3 $sp-4;
+  background-color: rgba($link-color, 0.04);
+  border-left: 3px solid $link-color;
+  border-radius: $border-radius;
+  // Compositor-friendly hover only.
+  transition: transform $transition-duration ease, box-shadow $transition-duration ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.cv-entry-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $sp-2;
+}
+
+.cv-org {
+  font-weight: 600;
+  color: $body-heading-color;
+}
+
+// Date badge / pill.
+.cv-date {
+  flex-shrink: 0;
+  padding: 0.12em 0.6em;
+  font-size: 0.72rem;
+  font-weight: 500;
+  white-space: nowrap;
+  color: $link-color;
+  background-color: rgba($link-color, 0.12);
+  border-radius: 100px;
+}
+
+// Highlight an ongoing role in green.
+.cv-date--current {
+  color: $green-300;
+  background-color: rgba($green-300, 0.16);
+}
+
+.cv-role {
+  margin-top: $sp-1;
+  font-size: 0.9rem;
+}
+
+.cv-note {
+  margin-top: $sp-1;
+  font-size: 0.8rem;
+  color: $grey-dk-100;
+}
+
+// Publication cards: two-per-row grid of uniform-width cards that stretch to
+// equal height per row. Icon-only resource links pinned to the card bottom.
+.pub-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $sp-4;
+  margin: $sp-4 0;
+
+  @media (max-width: 50rem) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pub-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: $body-background-color;
+  border: $border $border-color;
+  border-radius: $border-radius;
+  transition: transform $transition-duration ease, box-shadow $transition-duration ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Uniform teaser crop so mixed aspect ratios sit flush in the grid.
+.pub-card-media {
+  display: block;
+  line-height: 0;
+
+  img,
+  video {
+    display: block;
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+  }
+}
+
+.pub-card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: $sp-3 $sp-4;
+}
+
+.pub-venue {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: $link-color;
+}
+
+.pub-card-title {
+  margin: $sp-1 0 $sp-2;
+  font-size: 0.95rem;
+  line-height: 1.3;
+
+  a {
+    color: $body-heading-color;
+    background-image: none;
+
+    &:hover {
+      color: $link-color;
+    }
+  }
+}
+
+.pub-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $sp-1;
+  margin: 0 0 $sp-3;
+}
+
+// Outlined chips — theme-safe tokens so tags adapt to light/dark.
+.pub-tag {
+  padding: 0.08em 0.6em;
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: $link-color;
+  border: $border $border-color;
+  border-radius: 100px;
+}
+
+// Icon resource links pinned to the bottom edge so they align across cards.
+.pub-links {
+  display: flex;
+  gap: $sp-2;
+  margin-top: auto;
+}
+
+.pub-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: $sp-5;
+  height: $sp-5;
+  color: $link-color;
+  background-image: none;
+  border: $border $border-color;
+  border-radius: 50%;
+  transition: color $transition-duration ease, background-color $transition-duration ease,
+    transform $transition-duration ease;
+
+  svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  &:hover {
+    color: $body-background-color;
+    background-color: $link-color;
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $link-color;
+    outline-offset: 2px;
+  }
+}

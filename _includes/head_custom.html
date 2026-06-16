@@ -1,0 +1,13 @@
+<script>
+  /*
+    Restore the visitor's saved light/dark preference before the body paints.
+    jtd is defined by just-the-docs.js (loaded earlier in <head>); the swappable
+    stylesheet is the first <link rel="stylesheet">, which is what setTheme targets.
+  */
+  (function () {
+    try {
+      var theme = localStorage.getItem('jtd-theme');
+      if (theme) jtd.setTheme(theme);
+    } catch (e) {}
+  })();
+</script>
