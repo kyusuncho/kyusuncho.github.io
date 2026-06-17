@@ -36,16 +36,18 @@ jobs:
         with:
           ruby-version: "3.4"
           bundler-cache: false # we install manually below to normalize platforms first
-      - name: Install gems (Linux-targeted lockfile)
-        # Gemfile.lock is committed from a macOS dev machine, so it pins
-        # arm64-darwin gem variants. On this Linux runner those pins make a
-        # frozen install fail whenever a darwin variant is briefly unavailable
-        # on rubygems. Strip the darwin platform and resolve the runner's own
-        # platform before installing so the deploy never depends on mac gems.
+      - name: Install gems
+        # Gemfile.lock is committed from a macOS dev machine and pins
+        # platform-specific native gems. Bundler 2.5.9 (BUNDLED WITH) mishandles
+        # the modern precompiled Linux gems, which now publish as
+        # "x86_64-linux-gnu" rather than the legacy "x86_64-linux" the lockfile
+        # resolves to — so a frozen install dies looking for gems that don't
+        # exist under that name (e.g. ffi-1.17.4-x86_64-linux). Building the
+        # native gems from source instead of using precompiled binaries makes
+        # the install immune to that platform-naming mismatch.
         run: |
           bundle config set --local frozen false
-          bundle lock --remove-platform arm64-darwin || true
-          bundle lock --add-platform x86_64-linux
+          bundle config set --local force_ruby_platform true
           bundle install --jobs 4 --retry 3
       - name: Setup Pages
         id: pages
