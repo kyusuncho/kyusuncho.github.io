@@ -45,7 +45,8 @@ jobs:
         run: |
           bundle config set --local frozen false
           bundle lock --remove-platform arm64-darwin || true
-          bundle lock --add-platform x86_64-linux
+          bundle lock --remove-platform x86_64-linux || true
+          bundle lock --add-platform x86_64-linux-gnu
           bundle install --jobs 4 --retry 3
       - name: Setup Pages
         id: pages
