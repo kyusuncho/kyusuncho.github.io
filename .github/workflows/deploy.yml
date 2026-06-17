@@ -35,8 +35,18 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.4"
-          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
-          cache-version: 0 # Increment this number if you need to re-download cached gems
+          bundler-cache: false # we install manually below to normalize platforms first
+      - name: Install gems (Linux-targeted lockfile)
+        # Gemfile.lock is committed from a macOS dev machine, so it pins
+        # arm64-darwin gem variants. On this Linux runner those pins make a
+        # frozen install fail whenever a darwin variant is briefly unavailable
+        # on rubygems. Strip the darwin platform and resolve the runner's own
+        # platform before installing so the deploy never depends on mac gems.
+        run: |
+          bundle config set --local frozen false
+          bundle lock --remove-platform arm64-darwin || true
+          bundle lock --add-platform x86_64-linux
+          bundle install --jobs 4 --retry 3
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v6
