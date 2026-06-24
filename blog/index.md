@@ -12,9 +12,9 @@ permalink: /
 
 I am an AI Engineer at PlantyNet, working on on-device deepfake detection, LLMOps, and applied AI systems. I completed my M.S. in Computer Science (Artificial Intelligence) at Korea University in February 2025, advised by Professor Seungryong Kim, and received my B.S. in Statistics from Korea University in February 2022.
 
-My research and engineering interests include 3D computer vision, 3D synthesis, multi-modal AI, and practical systems that bring model capabilities into real products. Feel free to contact me via e-mail [kyustorm7@korea.ac.kr](mailto:kyustorm7@korea.ac.kr).
+My research and engineering interests include 3D computer vision, 3D synthesis, multi-modal AI, and practical systems that bring model capabilities into real products. 
 
-This blog is a queue of notes, write-ups, and reflections from the projects I work on and the experiences I gather along the way.
+As an engineer, I always have a question in mind: why a system behaves the way it does, how an idea can become something useful, and what can be improved next. Kyuestion is where I write through those questions, sharing notes, write-ups, and reflections from the projects I work on and the experiences I gather along the way.
 
 ---
 
@@ -138,7 +138,3 @@ This blog is a queue of notes, write-ups, and reflections from the projects I wo
 </div>
 
 </div>
-
----
-
-Template of [Lior Yariv](https://lioryariv.github.io/)
