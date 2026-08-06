@@ -79,24 +79,6 @@ $toc-aside-breakpoint: $nav-width + $content-width + $toc-aside-width +
   }
 }
 
-// On wide screens the theme lets the sidebar absorb half the leftover width,
-// and paints all of it — so the empty run of tint reads as a huge panel rather
-// than as page margin. Paint only the nav column itself; the rest of the
-// sidebar's box becomes ordinary background, matching the open space on the
-// right of the panel. Scoped to `lg`, the first breakpoint where the sidebar
-// grows past $nav-width (below it the box *is* the column, and on mobile it is
-// a full-width bar that must stay fully tinted).
-@include mq(lg) {
-  .side-bar {
-    background-color: $body-background-color;
-    background-image: linear-gradient(
-      to right,
-      transparent calc(100% - #{$nav-width}),
-      $sidebar-color 0
-    );
-  }
-}
-
 .toc-aside-inner {
   position: sticky;
   top: $sp-6;
