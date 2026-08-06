@@ -74,6 +74,24 @@ nav_exclude: true        # hides from nav; page still builds & is reachable by U
 Also useful: `search_exclude: true` (omit from search), `published: false` (don't build at all).
 Existing examples to copy from: `blog/search.md`, `blog/minimal-test.md`.
 
+## The "On this page" panel (right-hand TOC)
+
+Every page automatically gets a sticky table of contents on the right, built from its own
+`##` and `###` headings. Nothing to add to a post — just write headings, and keep them
+meaningful, since they are the page's navigation.
+
+- It appears only when a page has **two or more** `##`/`###` headings, and only on viewports
+  at least `84.5rem` (1352px) wide — narrower screens keep the stock two-column layout.
+- Above that width the panel's column is reserved on *every* page, even ones with no panel,
+  so the sidebar and content column stay put as you navigate. Don't make those widths
+  conditional on the page having headings.
+- `####` and deeper are ignored on purpose; two levels keep the panel scannable.
+- Opt a page out with `toc_aside: false` in its front matter.
+
+Implementation, if it needs changing: `_includes/toc_aside_custom.html` (builds the list from
+the rendered HTML at build time), `_sass/custom/custom.scss` (`.toc-aside*`, plus the
+three-column widths), `_includes/js/custom.js` (scroll-spy highlighting).
+
 ## Linking between posts
 
 Prefer `{% link %}` (build-time validated — a typo'd path **fails the build**, which is the

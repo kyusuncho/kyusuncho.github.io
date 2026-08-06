@@ -1,0 +1,66 @@
+{%- comment -%}
+  Right-hand "On this page" panel.
+
+  Include as: {% include toc_aside_custom.html html=content %}
+
+  Scans the *rendered* page HTML for `h2`/`h3` elements and emits a nav of
+  anchor links. kramdown gives every heading an `id` (auto_ids), which is the
+  same id the theme's anchor_headings include links to, so the two agree.
+
+  Renders nothing (an empty string) when the page opts out with
+  `toc_aside: false` in its front matter, or when there are fewer than two
+  headings — the caller tests for that emptiness to decide whether to make
+  room for the panel.
+{%- endcomment -%}
+
+{%- if page.toc_aside == false -%}{%- else -%}
+
+  {%- comment -%}
+    Liquid has no array-of-hashes, so each heading is accumulated as a
+    "level~|~id~|~text" record joined by "~||~". Both separators are chosen to
+    be impossible in real heading text.
+  {%- endcomment -%}
+  {%- assign toc_records = "" -%}
+  {%- assign chunks = include.html | split: "<h" -%}
+  {%- for chunk in chunks -%}
+    {%- assign level = chunk | slice: 0 -%}
+    {%- if level == "2" or level == "3" -%}
+      {%- assign open_tag = chunk | split: ">" | first -%}
+      {%- if open_tag contains 'id="' -%}
+        {%- assign id = open_tag | split: 'id="' | last | split: '"' | first -%}
+        {%- assign text = chunk | remove_first: open_tag | remove_first: ">" | split: "</h" | first | strip_html | strip -%}
+        {%- if text != "" -%}
+          {%- capture toc_records -%}
+            {{ toc_records }}{{ level }}~|~{{ id }}~|~{{ text }}~||~
+          {%- endcapture -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endif -%}
+  {%- endfor -%}
+
+  {%- assign toc_entries = toc_records | split: "~||~" -%}
+
+  {%- if toc_entries.size > 1 -%}
+    <aside class="toc-aside">
+      <div class="toc-aside-inner">
+        <nav class="toc-aside-nav" aria-labelledby="toc-aside-title">
+          {%- comment -%}
+            A <p>, not a heading: the theme sizes every h1–h6 with `!important`,
+            and this label is a landmark name rather than part of the page's
+            heading outline.
+          {%- endcomment -%}
+          <p class="toc-aside-title" id="toc-aside-title">On this page</p>
+          <ul class="toc-aside-list">
+            {%- for entry in toc_entries -%}
+              {%- assign parts = entry | split: "~|~" -%}
+              <li class="toc-aside-item toc-aside-item--h{{ parts[0] }}">
+                <a class="toc-aside-link" href="#{{ parts[1] }}">{{ parts[2] }}</a>
+              </li>
+            {%- endfor -%}
+          </ul>
+        </nav>
+      </div>
+    </aside>
+  {%- endif -%}
+
+{%- endif -%}
