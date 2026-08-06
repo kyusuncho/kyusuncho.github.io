@@ -16,8 +16,13 @@
 // ---------------------------------------------------------------------------
 
 $toc-aside-width: 14rem;
-$toc-aside-gap: $sp-6;
-// Sidebar + content + panel, plus a window-edge margin: 84.5rem / 1352px.
+$toc-aside-gap: $sp-4;
+// Wider inner gutter than the theme's default $gutter-spacing, so the article
+// is not crowded against the nav on one side and the panel on the other. Puts
+// the text 48px from the sidebar edge and 64px from the panel's rail, and
+// narrows the measure to 44rem — squarely in the comfortable range.
+$content-gutter-wide: $sp-8;
+// Sidebar + content + panel, plus a window-edge margin: 83.5rem / 1336px.
 $toc-aside-breakpoint: $nav-width + $content-width + $toc-aside-width +
   $toc-aside-gap + $sp-6;
 
@@ -47,6 +52,20 @@ $toc-aside-breakpoint: $nav-width + $content-width + $toc-aside-width +
     margin-left: $toc-aside-offset;
   }
 
+  .main-content-wrap {
+    padding-right: $content-gutter-wide;
+    padding-left: $content-gutter-wide;
+  }
+
+  // Keep the header's search field aligned with the body text it searches.
+  .search-label {
+    padding-left: $content-gutter-wide;
+  }
+
+  .search-input {
+    padding-left: $content-gutter-wide + $sp-5;
+  }
+
   .toc-aside {
     position: absolute;
     top: 0;
@@ -57,6 +76,24 @@ $toc-aside-breakpoint: $nav-width + $content-width + $toc-aside-width +
     padding-left: $toc-aside-gap;
     // Start level with the first line of content, below the page header.
     padding-top: $header-height + $gutter-spacing;
+  }
+}
+
+// On wide screens the theme lets the sidebar absorb half the leftover width,
+// and paints all of it — so the empty run of tint reads as a huge panel rather
+// than as page margin. Paint only the nav column itself; the rest of the
+// sidebar's box becomes ordinary background, matching the open space on the
+// right of the panel. Scoped to `lg`, the first breakpoint where the sidebar
+// grows past $nav-width (below it the box *is* the column, and on mobile it is
+// a full-width bar that must stay fully tinted).
+@include mq(lg) {
+  .side-bar {
+    background-color: $body-background-color;
+    background-image: linear-gradient(
+      to right,
+      transparent calc(100% - #{$nav-width}),
+      $sidebar-color 0
+    );
   }
 }
 

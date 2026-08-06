@@ -81,7 +81,7 @@ Every page automatically gets a sticky table of contents on the right, built fro
 meaningful, since they are the page's navigation.
 
 - It appears only when a page has **two or more** `##`/`###` headings, and only on viewports
-  at least `84.5rem` (1352px) wide — narrower screens keep the stock two-column layout.
+  at least `83.5rem` (1336px) wide — narrower screens keep the stock two-column layout.
 - Above that width the panel's column is reserved on *every* page, even ones with no panel,
   so the sidebar and content column stay put as you navigate. Don't make those widths
   conditional on the page having headings.
