@@ -14,7 +14,7 @@ I am an AI Engineer at PlantyNet, working on on-device deepfake detection, LLMOp
 
 My research and engineering interests include 3D computer vision, 3D synthesis, multi-modal AI, and practical systems that bring model capabilities into real products. 
 
-As an engineer, I always have a question in mind: why a system behaves the way it does, how an idea can become something useful, and what can be improved next. Kyuestion is where I write through those questions, sharing notes, write-ups, and reflections from the projects I work on and the experiences I gather along the way.
+As an engineer, I always have a question in mind: why a system behaves the way it does, how an idea can become something useful, and what can be improved next. This blog is where I write through those questions, sharing notes, write-ups, and reflections from the projects I work on and the experiences I gather along the way.
 
 ---
 
