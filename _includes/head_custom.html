@@ -11,3 +11,14 @@
     } catch (e) {}
   })();
 </script>
+
+{%- comment -%}
+  Favicon. The theme's own `favicon.html` already links the root `/favicon.ico`
+  for legacy browsers; these add the modern set. The SVG is the master and is
+  what current browsers pick.
+{%- endcomment -%}
+<link rel="icon" type="image/svg+xml" href="{{ '/assets/images/favicon/favicon.svg' | relative_url }}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ '/assets/images/favicon/favicon-32x32.png' | relative_url }}">
+<link rel="icon" type="image/png" sizes="16x16" href="{{ '/assets/images/favicon/favicon-16x16.png' | relative_url }}">
+<link rel="icon" type="image/png" sizes="96x96" href="{{ '/assets/images/favicon/favicon-96x96.png' | relative_url }}">
+<link rel="apple-touch-icon" sizes="180x180" href="{{ '/assets/images/favicon/apple-touch-icon.png' | relative_url }}">
