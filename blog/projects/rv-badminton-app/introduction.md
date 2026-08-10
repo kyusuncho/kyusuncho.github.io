@@ -1,147 +1,150 @@
 ---
-title: Chapter 1 — Introduction
+title: Chapter 1 — 프로젝트 소개
 parent: RV Badminton App
 nav_order: 1
+card_title: 프로젝트 소개
+card_eyebrow: Chapter 1
+card_excerpt: 단톡방과 수작업 점수 정산에서 출발한 프로젝트가 어떻게 네 개의 서비스로 나뉘게 되었는지, 그 배경과 전체 구성을 훑는다.
+card_media: glyph
+card_glyph: "01"
+card_tags: spring-boot, flutter, 아키텍처
 ---
 
-# RV Badminton: What It Takes to Replace a Group Chat
+# 서비스는 불편함부터 시작된다
 
-An 18-month tour of a four-service, three-language platform built so a badminton club could stop
-squinting at chat messages to count their scores.
+단톡방에서 점수를 세고, 순위를 기다리고, 기록을 찾느라 다시 채팅을 뒤져야 했던 배드민턴 클럽을 위해 만든 서비스의 18개월 기록.
 
 <p class="pub-tags"><span class="pub-tag">#system-design</span> <span class="pub-tag">#microservices</span> <span class="pub-tag">#spring-boot</span> <span class="pub-tag">#flutter</span> <span class="pub-tag">#fastapi</span> <span class="pub-tag">#software-architecture</span></p>
 
-> This is the first post in a series about **RV Badminton** — a production platform I've been building for ~18 months to run a real badminton club. This post is the map: what the system *is*, why it exists, and how its pieces fit together. The posts that follow each take one architecture decision and go deep. By the end of this one, you'll understand the whole system well enough to know which deep-dive you actually want to read.
+> RV Badminton은 내가 실제로 다니는 배드민턴 클럽을 위해 만든 서비스다. 처음에는 단톡방과 수작업 정산에서 오는 불편을 줄이고 싶었다. 그러다 보니 매치 기록, 실시간 리더보드, 개인 통계, 커뮤니티까지 필요해졌다. 이 글에서는 무엇이 불편했는지, 그래서 무엇을 만들기로 했는지부터 이야기한다.
 
 ---
 
-## It started with badminton
+## 불편함은 코트 밖에 있었다
 
-I play badminton every weekend at **RV Badminton**, a club run out of a sports hall in Seoul. The sessions are long — multiple courts, a rotating mix of doubles games across men's, women's, and mixed — and the community is genuinely tight-knit. People have been showing up together for years.
+나는 주말마다 서울의 한 체육관에서 운영되는 **RV Badminton**에서 배드민턴을 친다. 정모가 열리면 여러 코트에서 남복, 여복, 혼복이 계속 돌아간다. 몇 년째 함께 운동하는 사람들도 많다.
 
-The person who makes RV Badminton *RV Badminton* is **Sangwoo Kim**, the club leader. Sangwoo doesn't just organize the courts and keep the peace; he runs an elaborate ranking system. Every match earns you points — a formula based on scores, opponents, participation — and at the end of every other month, the top-ranked players get prizes: a brand new badminton racket, shuttlecocks, gear. Real prizes. Earned by showing up and playing well, tracked across every session.
+클럽 회장인 **김상우**님은 코트 배정과 운영뿐 아니라 랭킹 시스템도 직접 관리한다. 매치는 점수·상대·참여도를 반영한 공식으로 환산되고, 두 달에 한 번 상위 랭커에게 라켓이나 셔틀콕 같은 상품이 주어진다. 매 정모의 기록이 쌓여 나온 결과다.
 
-That system is the reason people care. The leaderboard isn't decoration — it's the reason someone pushes through a tough set instead of coasting. The ranking *matters*.
+사람들이 이 시스템에 진심인 이유가 여기에 있다. 리더보드는 장식이 아니다. 힘든 세트에서 대충 흘려보내지 않고 끝까지 밀어붙이게 만드는 이유다. 랭킹은 *중요하다*.
 
-And the way it worked, for a long time, was this: **a group chat and a C# program that Sangwoo ran on his own machine.**
+그런데 기록을 남기고 순위를 계산하는 방식은 한동안 꽤 불편했다.
 
 ---
 
-## The group chat era
+## 단톡방으로는 부족했던 것들
 
-During each session, as matches finished, players would type their results into the KakaoTalk group chat. Raw, freeform text, dumped into the same channel used for everything else:
+정모 중에 매치가 끝날 때마다 선수들은 결과를 카카오톡 단톡방에 입력했다. 다른 모든 대화가 오가는 그 채널에, 아무 형식 없는 날것의 텍스트로 쏟아졌다.
 
 ```
 김상우 이소현 백태민 김기주 21 19
 ```
 
-At the end of the day, Sangwoo would scroll back through hours of messages, copy the relevant lines, manually parse them — who played, what were the scores, fix typos, correct anyone who got the format slightly wrong — and paste everything into his own C# application. The program would crunch through the accumulated data, apply his point system, and spit out a leaderboard.
+하루가 끝나면 상우님은 몇 시간치 메시지를 거슬러 올라가며 필요한 줄만 복사하고, 직접 해석했다. 누가 쳤는지, 점수는 몇 대 몇인지 확인하고, 오타를 고치고, 형식을 조금씩 틀리게 쓴 사람의 기록을 바로잡은 다음, 전부 본인의 C# 애플리케이션에 붙여 넣었다. 프로그램은 누적된 데이터를 계산해 상우님의 점수 체계를 적용하고 리더보드를 뽑아냈다.
 
-That was the pipeline. Human OCR, manual data entry, one person's laptop, a custom desktop app. It worked because Sangwoo made it work, through sheer personal effort every single week.
+이것이 파이프라인의 전부였다. 사람이 메시지를 읽어 옮기고, 한 대의 노트북에서 직접 만든 데스크톱 앱을 돌렸다. 이 방식은 상우님이 매주 시간을 들였기 때문에 유지될 수 있었다.
 
-But it had problems:
+단톡방과 C# 프로그램만으로도 운영은 됐다. 다만 매주 같은 불편이 반복됐다.
 
-**Problem 1: Nobody understood the actual rules.**
-Sangwoo's C# system had a real algorithm underneath — league points, win/loss weighting, a social participation factor — but it lived entirely in his head and his code. Ask any club member how the points were calculated and you'd get a shrug. People knew they were being ranked; they had no idea why. When someone's rating seemed wrong, there was no way to verify it, which meant every season had at least one skeptical conversation in the group chat.
+**불편 1: 점수 규칙이 보이지 않았다.**
+상우님의 C# 시스템에는 리그 포인트, 승패 가중치, 사교 참여도 계수까지 갖춘 진짜 알고리즘이 있었지만, 그 알고리즘은 온전히 상우님의 머릿속과 코드 안에만 존재했다. 클럽 회원 아무나 붙잡고 점수가 어떻게 계산되냐고 물으면 돌아오는 건 어깨를 으쓱하는 반응뿐이었다. 사람들은 자신이 순위가 매겨진다는 사실은 알았지만, 왜 그런 순위인지는 전혀 몰랐다. 누군가의 레이팅이 이상해 보여도 확인할 방법이 없었고, 그래서 시즌마다 최소 한 번은 단톡방에서 의심 섞인 대화가 오갔다.
 
-**Problem 2: The leaderboard was always hours behind.**
-During the session, everyone was playing blind. You didn't know where you stood until Sangwoo ran his program at the end of the day, maybe later. If you were on the edge of a prize cutoff, you couldn't even tell if the last game mattered. The lag wasn't just annoying — it disconnected the playing from the ranking in a way that dulled the whole competitive edge.
+**불편 2: 리더보드는 늘 몇 시간 늦었다.**
+정모 중에는 모두가 깜깜이 상태로 경기를 했다. 상우님이 하루가 끝나고, 혹은 그보다 더 늦게 프로그램을 돌리기 전까지는 자기 위치를 알 수 없었다. 상품 커트라인 근처에 걸려 있어도 마지막 경기가 의미가 있는지조차 알 수 없었다. 이 지연은 단순히 성가신 수준이 아니었다. 경기와 랭킹을 서로 떼어놓아 경쟁의 긴장감 자체를 무디게 만들었다.
 
-**Problem 3: Non-participants got drowned in notifications.**
-The match results were typed into the same group chat that every club member was in — including members who didn't play that day. Sit out a week and your phone still buzzed fifty times as games wrapped up. This was, charitably, not great. People started muting the chat, which meant they also missed the actually important announcements.
+**불편 3: 쉬는 사람까지 알림에 파묻혔다.**
+매치 결과는 모든 클럽 회원이 들어 있는 바로 그 단톡방에 입력되었다. 그날 경기하지 않은 회원까지 포함해서 말이다. 한 주 쉬어도 경기가 끝날 때마다 휴대폰이 쉰 번씩 울렸다. 좋게 말해도 유쾌한 경험은 아니었다. 사람들이 채팅방을 음소거하기 시작했고, 그 결과 정작 중요한 공지까지 놓치게 되었다.
 
-**Problem 4: Sangwoo was doing unpaid data-entry work every week.**
-The manual pipeline — read the messages, parse them, clean them, enter them — took real time and attention. It also introduced a single point of failure: if Sangwoo wasn't there, or was tired, or the messages were unusually messy, the whole system degraded. The ranking system existed because of one person's willingness to do manual labor on top of actually running the club.
+**불편 4: 상우님이 매주 데이터를 직접 입력해야 했다.**
+메시지를 읽고, 해석하고, 정리해 입력하는 일에는 시간과 집중력이 들었다. 동시에 단일 장애점이기도 했다. 상우님이 자리를 비우거나 메시지가 유난히 뒤섞인 주에는 결과가 늦어지거나 오류가 생길 여지가 컸다.
 
-**Problem 5: Simple questions had no good answers.**
-"How many games did I play today?" Scroll back through the chat and count. "Who did I pair with most this season?" No idea. "Am I playing better than I was three months ago?" The data existed — somewhere in accumulated chat history — but it was completely inaccessible.
+**불편 5: 내 기록을 물어봐도 바로 답할 수 없었다.**
+"오늘 나 몇 게임 쳤지?" 채팅을 거슬러 올라가서 세어야 한다. "이번 시즌에 누구랑 제일 많이 파트너 했지?" 알 수 없다. "석 달 전보다 내가 나아지고 있나?" 데이터는 어딘가 누적된 채팅 기록 안에 분명히 존재했지만, 접근은 완전히 불가능했다.
 
 ---
 
-## Why I decided to build this
+## 그래서 내가 앱을 만들기로 했다
 
-A bit of personal context first, because it matters for how this project was approached.
+나는 AI 엔지니어다. 컴퓨터공학 석사 과정에서는 주로 비전 AI, 뉴럴 네트워크, 이미지 인식을 다뤘다. 프로덕션 웹 서비스는 만들어 본 적이 없었다. Spring Boot, Flutter, Docker 네트워킹, 리버스 프록시도 처음이었고 Git도 "commit, push, 반복"을 넘어서 써 본 경험이 없었다. RV Badminton은 내 **첫 소프트웨어 엔지니어링 프로젝트**다.
 
-I'm an AI engineer — my Master's degree in computer science was almost entirely about vision AI: neural networks, image recognition, that world. I had never built a production web service. I had never touched Spring Boot, Flutter, Docker networking, or a reverse proxy. I barely used Git beyond "commit, push, repeat." RV Badminton is, genuinely, my **first software engineering project**.
+막 학위를 마치고 첫 직장 출근을 한 달쯤 앞둔 때였다. AI 보조 코딩이 빠르게 퍼지면서, LLM을 이용해 실제 서비스를 만드는 사례도 많이 보였다. 나는 현업 엔지니어라면 알아야 할 GitHub 워크플로, 인프라, 네트워킹, 백엔드와 데이터베이스의 연결, Docker Compose를 직접 써 보고 싶었다. 이론은 있었지만 경험은 없었다.
 
-The timing was specific. I had just finished my degree and was waiting for my first job to start — there was about a month before my first day. During that gap, "vibe-coding" was having a moment: AI-assisted coding was everywhere, people were building real things surprisingly fast with LLM help, and the barrier to starting something ambitious had dropped noticeably. I wanted to actually get familiar with the things I'd be expected to know as a working engineer — GitHub workflows, infrastructure, basic networking, how a backend and a database talk to each other, what Docker Compose actually does. The theory I had. The hands-on intuition I didn't.
+RV Badminton은 좋은 출발점처럼 보였다. 내가 매주 겪는 문제였고, 함께 운동하는 사람들에게 바로 써 볼 수 있었다. 처음에는 매치 기록 앱 하나를 만들고 몇 가지를 배우면 끝날 거라고 생각했다.
 
-RV Badminton seemed like the perfect vehicle. It was a real problem I cared about, for real people I played with every weekend, with a scope I thought was manageable. I'd build a simple match-recording app, learn some things, call it done.
+상우님께 이렇게 제안했다. *규칙은 정해 주세요. 기록하고 계산하고 보여주는 일은 제가 앱으로 만들겠습니다.* 경기 결과는 바로 입력하고, 점수는 자동으로 계산하고, 리더보드는 정모 중에도 볼 수 있게 하자. 알림은 단톡방을 도배하지 않고 필요한 사람에게만 보내면 됐다.
 
-The pitch I made to Sangwoo was simple: *let me build a proper app for this.* He could define the rules, and the app would handle everything else — recording matches in real time, computing points automatically, showing a live leaderboard during the session, and delivering it all to members' phones without flooding the group chat.
+상우님은 좋다고 했다. 그리고 나는 "감당할 만하다"는 게 실제로 무슨 뜻인지 알아가기 시작했다.
 
-He said yes. And then I started to understand what "manageable" actually meant.
+![RV Badminton 회원 로그인 화면]({{ '/assets/images/posts/rv-badminton/login.webp' | relative_url }}){: .post-shot width="720" height="1565" loading="lazy" }
 
-![RV Badminton member sign-in screen]({{ '/assets/images/posts/rv-badminton/login.webp' | relative_url }}){: .post-shot width="720" height="1565" loading="lazy" }
-
-*The Flutter member app starts with the club's own sign-in surface — a much more deliberate starting point than a freeform chat thread.*
+*Flutter 회원 앱은 클럽 고유의 로그인 화면에서 시작한다. 형식 없는 채팅 스레드보다 훨씬 의도가 분명한 출발점이다.*
 {: .post-caption }
 
-What started as a month-long learning project became eighteen months of continuous development. I didn't plan for that. But somewhere along the way it stopped feeling like homework and started feeling like something I genuinely wanted to get right — and every time a club member checked their stats mid-session, it felt worth it.
+한 달짜리 학습 프로젝트는 18개월의 개발로 이어졌다. 계획했던 일은 아니었다. 그래도 정모 중에 회원이 자신의 기록을 확인하는 모습을 볼 때면 계속 손볼 이유가 분명해졌다.
 
-**RV Badminton is** roughly **1,185 commits** of that: four services in three languages, running in production, with a real deployment runbook and real users who would notice if it broke. This post is about *how a learning project earns that complexity* — because none of it was added for its own sake. Each piece exists because a specific, concrete problem made the simple version stop working.
+지금 RV Badminton에는 약 **1,185개의 커밋**, 세 언어로 만든 네 개의 서비스, 배포 런북, 그리고 오류를 바로 알려 줄 실제 사용자가 있다. 처음부터 이렇게 만들겠다고 정한 적은 없다. 단순한 버전으로는 해결되지 않는 일이 생길 때마다 하나씩 고쳤고, 그 결과가 지금의 구성이다.
 
 ---
 
-## The constraints that shaped everything
+## 앱에서 고치고 싶었던 점들
 
-If you want to understand a system's architecture, don't start with the architecture. Start with the problems that made the previous approach untenable. Each of the five problems in Sangwoo's pipeline maps directly onto an engineering constraint — and each constraint shaped a part of the system.
+앱의 기능은 기술 목록에서 나온 것이 아니다. 단톡방과 수작업 정산을 하면서 계속 마주친 문제에서 나왔다. 아래 다섯 가지는 우리가 바꾸고 싶었던 점이고, 서비스가 갖춰야 할 요구사항이 됐다.
 
-### 1. Match data needs to be visible to everyone, immediately
+### 1. 경기 결과가 바로 보였으면 했다
 
-The group chat pipeline had a fundamental concurrency problem: one person (Sangwoo) was the bottleneck between "a match happened" and "anyone knows about it." Everyone else was operating on stale information for hours.
+단톡방 파이프라인에는 근본적인 동시성 문제가 있었다. "매치가 일어났다"와 "누군가 그것을 안다" 사이에 한 사람(상우님)이 병목으로 서 있었다. 나머지 전원은 몇 시간 동안 낡은 정보 위에서 움직이고 있었다.
 
-The fix sounds simple — just write results to a database — but "immediately" is the hard part. When a match is recorded on court 3, the players on court 1 should see it appear on their phones *now*, without refreshing. Every member present at the session is effectively a concurrent reader of a shared, changing dataset. That requirement pushes the backend toward **real-time event broadcasting**: the moment a result is written, it needs to propagate to every connected client simultaneously.
+결과를 데이터베이스에 쓰는 것만으로는 부족했다. 중요한 건 "지금"이었다. 3번 코트에서 매치가 기록되면, 1번 코트의 선수들도 새로고침 없이 바로 휴대폰에서 봐야 했다. 그래서 결과가 저장되는 순간 연결된 앱에 전파하는 **실시간 이벤트 브로드캐스팅**이 필요했다.
 
-This is not a problem you can solve with a REST API and a pull-to-refresh. It needs a persistent connection — a WebSocket — and a server architecture that can push to all connected clients without missing anyone. The moment you commit to that, you're also committing to handling reconnections, authentication on the socket layer, and the question of what happens to a client that was offline when an update arrived.
+REST API에 새로고침만 붙여서는 해결되지 않았다. 앱과 서버가 계속 연결된 **WebSocket**이 필요했고, 재연결과 소켓 인증, 오프라인이던 앱의 상태까지 함께 처리해야 했다.
 
-### 2. Every member deserves their own statistics
+### 2. 내 기록을 내가 볼 수 있어야 했다
 
-In the group chat era, the only artifact was Sangwoo's end-of-day leaderboard — a single ranked list. Individual history didn't exist as a queryable thing. "How many games did I play this season?" or "Who have I played with most?" required scrolling back through weeks of messages and counting by hand.
+단톡방 시대에 남는 결과물은 상우님이 하루 끝에 뽑아내는 리더보드, 즉 단 하나의 순위 목록뿐이었다. 개인 히스토리는 조회 가능한 형태로 존재하지 않았다. "이번 시즌에 나 몇 경기 쳤지?" 또는 "누구랑 가장 많이 쳤지?"에 답하려면 몇 주치 메시지를 거슬러 올라가며 손으로 세야 했다.
 
-This is a deeper problem than it sounds. It's not just about adding a stats screen. It means the data model has to be designed from the start to support **per-member, per-season, per-sportsday queries** — not just a running total. Every match needs to record not just who won, but who played, what their roles were, what the score was, which sportsday it belonged to, which season that sportsday falls in. The leaderboard is then just one view over that data; individual dashboards are another.
+이것은 들리는 것보다 깊은 문제다. 단순히 통계 화면 하나를 추가하는 문제가 아니다. 데이터 모델이 처음부터 **회원별·시즌별·스포츠데이별 조회**를 지원하도록 설계되어야 한다는 뜻이다. 단순 누적 합계로는 안 된다. 모든 매치는 누가 이겼는지뿐 아니라 누가 뛰었는지, 각자의 역할은 무엇이었는지, 점수는 어땠는지, 어느 스포츠데이에 속하는지, 그 스포츠데이가 어느 시즌에 들어가는지까지 기록해야 한다. 그러면 리더보드는 그 데이터 위의 한 가지 뷰일 뿐이고, 개인 대시보드는 또 다른 뷰가 된다.
 
-The app gives each member a personal dashboard: games played, win rate, point progression over time, league level history, how they've trended across seasons. None of that comes for free from "store match results." It requires a data model that was built with those queries in mind from the beginning — and a rating engine that can answer questions like "what were my points after last month's session?" without having to replay everything on the fly each time.
+앱은 회원 각자에게 개인 대시보드를 제공한다. 참여 경기 수, 승률, 시간에 따른 포인트 추이, 리그 레벨 이력, 시즌을 가로지르는 추세까지. 이 중 무엇도 "매치 결과를 저장한다"에서 공짜로 따라오지 않는다. 그런 조회를 염두에 두고 처음부터 설계된 데이터 모델이 필요하고, "지난달 정모가 끝난 시점에 내 점수가 얼마였지?" 같은 질문에 매번 전부 재연하지 않고도 답할 수 있는 레이팅 엔진이 필요하다.
 
-### 3. The manual pipeline needs to disappear entirely
+### 3. 누군가 매주 정산하지 않아도 됐으면 했다
 
-Problems 3 and 4 from the group chat era — Sangwoo's data-entry labor and the flood of notifications to non-participants — are both symptoms of the same root cause: **a manual process sitting in the middle of a system that should be automatic.**
+단톡방 시대의 문제 3과 문제 4 — 상우님의 데이터 입력 노동과 비참석자에게 쏟아지는 알림 — 은 같은 뿌리에서 나온 증상이다. **자동이어야 할 시스템 한가운데에 수작업 프로세스가 앉아 있다**는 것.
 
-Automation here means several things at once. Match recording has to be something *any member at the session* can do from their phone, in a structured way that doesn't require cleanup — no more freeform chat messages that someone has to parse. Score submission triggers point recalculation automatically, not at the end of the day when Sangwoo finds time. Push notifications go to the right people (participants and people who opted in) through a real notification system, not a group chat that treats everyone identically.
+여기서 자동화란 여러 가지를 동시에 뜻한다. 매치 기록은 *정모에 참석한 회원이라면 누구나* 자기 휴대폰에서, 후처리가 필요 없는 구조화된 방식으로 할 수 있어야 한다. 누군가 해석해야 하는 자유 형식 채팅 메시지는 더 이상 없다. 점수 제출은 상우님이 시간이 날 때인 하루의 끝이 아니라, 즉시 점수 재계산을 트리거해야 한다. 푸시 알림은 모두를 똑같이 취급하는 단톡방이 아니라 실제 알림 시스템을 통해 적절한 사람(참여자와 수신을 선택한 사람)에게 간다.
 
-That last point has its own engineering weight. Reliable push notifications — ones that actually arrive, that retry on failure, that don't block the API response while Firebase is slow — require an **asynchronous message queue** between "a match was recorded" and "a push notification was delivered." If you fire-and-forget a notification in the same API call that saves the match, any hiccup in Firebase makes the whole request fail or hang. The queue decouples those concerns: the match is saved fast, the notification is delivered eventually and reliably.
+푸시 알림도 마찬가지였다. 매치 저장 요청 안에서 Firebase까지 기다리게 하면, 알림 서비스가 느린 날에는 기록 자체가 늦어질 수 있다. 그래서 "매치가 기록됐다"와 "알림이 전달됐다" 사이에 **비동기 메시지 큐**를 뒀다. 매치는 먼저 저장하고, 알림은 별도 소비자가 재시도까지 맡는다.
 
-The end state: Sangwoo's entire Saturday pipeline — copy messages, parse names and scores, clean typos, run the desktop app, post the results — is replaced by members tapping in scores as they play, with everything else happening automatically.
+최종 상태는 이렇다. 상우님의 토요일 파이프라인 전체 — 메시지 복사, 이름과 점수 해석, 오타 정리, 데스크톱 앱 실행, 결과 게시 — 가 회원들이 경기하면서 점수를 입력하는 것으로 대체되고, 나머지는 전부 자동으로 일어난다.
 
-![RV Badminton match-recording screen]({{ '/assets/images/posts/rv-badminton/match-recording.webp' | relative_url }}){: .post-shot width="720" height="1561" loading="lazy" }
+![RV Badminton 매치 기록 화면]({{ '/assets/images/posts/rv-badminton/match-recording.webp' | relative_url }}){: .post-shot width="720" height="1561" loading="lazy" }
 
-*The match screen is a structured, date-aware workflow: this local 2026-08-05 view shows the 30 experiment matches and their scores. Player names are mosaicked for privacy.*
+*매치 화면은 날짜를 인식하는 구조화된 워크플로다. 로컬 환경의 2026-08-05 화면으로, 실험용 매치 30건과 점수가 표시되어 있다. 선수 이름은 프라이버시를 위해 모자이크 처리했다.*
 {: .post-caption }
 
-### 4. A club is social, not just competitive
+### 4. 점수와 대화가 한 채팅방에 섞이지 않았으면 했다
 
-Once the app had members' attention, the group chat's other job became visible: it was also the place where people *talked*. Announcements, session photos, buying and selling used gear, suggestions to the organizers — all of it mixed in with the match scores.
+앱이 회원들의 관심을 얻고 나자, 단톡방이 하던 또 다른 역할이 드러났다. 그곳은 사람들이 *대화하는* 공간이기도 했다. 공지, 정모 사진, 중고 용품 거래, 운영진에게 보내는 건의 — 이 모든 것이 매치 점수와 뒤섞여 있었다.
 
-That's how a match tracker grows a **community module**. Not because it was planned, but because taking away the group chat's data role left a gap that the social role still needed to fill — somewhere that was *not* also a firehose of score updates. Multiple board types, posts, threaded comments, media attachments, a secondhand marketplace. And with that comes its own engineering surface: image uploads that don't stream through the server, edit history, soft-deletion, moderation controls.
+매치 트래커가 **커뮤니티 모듈**로 자라난 이유가 여기에 있다. 계획한 것이 아니라, 단톡방에서 데이터 역할을 걷어내고 나니 사교 역할이 여전히 채워야 할 공백이 남았기 때문이다. 점수 업데이트가 쏟아지지 *않는* 공간이 필요했다. 여러 게시판 유형, 게시글, 대댓글, 미디어 첨부, 중고 장터. 그리고 여기에는 고유한 엔지니어링 표면이 따라온다. 서버를 거치지 않는 이미지 업로드, 수정 이력, 소프트 삭제, 운영 관리 기능 같은 것들이다.
 
-![RV Badminton community board]({{ '/assets/images/posts/rv-badminton/community-board.webp' | relative_url }}){: .post-shot width="720" height="1558" loading="lazy" }
+![RV Badminton 커뮤니티 게시판]({{ '/assets/images/posts/rv-badminton/community-board.webp' | relative_url }}){: .post-shot width="720" height="1558" loading="lazy" }
 
-*The app keeps the club's social conversations in a dedicated community space, separate from match results and ranking updates.*
+*앱은 클럽의 사교적 대화를 매치 결과나 랭킹 업데이트와 분리된 전용 커뮤니티 공간에 담는다.*
 {: .post-caption }
 
-### 5. It runs on real money for real people
+### 5. 계속 쓸 서비스라면 운영할 준비도 필요했다
 
-This isn't a demo. It's deployed on a paid server, real members open it on their real phones, and if it goes down during a club session, that's a real failure that affects real people's Saturday. That reality forces the unglamorous half of software engineering into existence: **database migrations** that don't lose data, **observability** so you can tell *why* something broke, a **deployment process** you can repeat under pressure, and a **local dev setup** that another developer can actually get running.
-
----
-
-Notice what all five constraints share: **none of them are about scale.** A badminton club peaks at a few dozen people simultaneously tapping in results. The complexity here is *essential* — it comes from the problem being genuinely multi-faceted (real-time data, personal analytics, end-to-end automation, social features, and operational reliability all at once), not from needing to serve a million users. That distinction changes what "good architecture" means. The goal isn't to handle load; it's to keep five different concerns from tangling into each other.
+이것은 데모가 아니다. 유료 서버에 배포되어 있고, 실제 회원들이 실제 휴대폰에서 열어보며, 클럽 정모 중에 다운되면 실제 사람들의 토요일에 영향을 주는 진짜 장애가 된다. 이 현실은 소프트웨어 엔지니어링의 화려하지 않은 절반을 강제로 존재하게 만든다. 데이터를 잃지 않는 **데이터베이스 마이그레이션**, 무언가 깨졌을 때 *왜* 깨졌는지 알 수 있는 **관측 가능성(observability)**, 압박 상황에서도 반복 가능한 **배포 프로세스**, 그리고 다른 개발자가 실제로 띄울 수 있는 **로컬 개발 환경**이 필요하다.
 
 ---
 
-## The shape of the system
+이 요구사항은 규모와는 관계가 없다. 동시에 결과를 입력하는 사람은 많아야 수십 명이다. 그래도 실시간 기록, 개인 통계, 자동화, 커뮤니티, 운영 안정성을 함께 챙겨야 했다. 여기서 중요한 것은 대량 트래픽을 견디는 일이 아니라, 한 문제를 고치다 다른 문제가 다시 생기지 않게 하는 일이었다.
 
-Here's the whole thing on one page. Four services, with shared infrastructure in the middle.
+---
+
+## 그래서 이렇게 나눴다
+
+불편했던 점들을 하나씩 고치다 보니, 서비스는 다음과 같이 나뉘었다. 네 개의 서비스가 공유 인프라를 중심으로 연결돼 있다.
 
 ```
 ┌──────────────┐     ┌────────────────────┐     ┌──────────────────┐
@@ -166,80 +169,67 @@ Here's the whole thing on one page. Four services, with shared infrastructure in
               └───────────────────┘
 ```
 
-Let's walk through each — what it does, what it's built on, and why I chose each component. 
+각 서비스는 앞에서 말한 불편 중 하나 이상을 맡아 해결한다.
 
-### The backend — the spine (Spring Boot 3.4, Java 17)
+### backend — 척추 (Spring Boot 3.4, Java 17)
 
-Everything goes through the backend. It's the only service that's allowed to **write** to the main database, which makes it the single authority on "what actually happened": matches, members, community posts, authentication.
+모든 것이 backend를 거친다. 메인 데이터베이스에 **쓰기**가 허용된 유일한 서비스이며, 그래서 "실제로 무슨 일이 일어났는가"에 대한 단일 권위자가 된다. 매치, 회원, 커뮤니티 게시글, 인증이 여기에 해당한다.
 
-It's built on a **fully reactive** stack — Spring WebFlux with R2DBC, the reactive PostgreSQL driver. In plain terms, that means the backend never blocks a thread waiting for the database; requests flow through as asynchronous streams (`Mono` for one result, `Flux` for many). For a club's traffic this is, frankly, overkill — but committing to it forced a useful discipline: every multi-step write is an explicit transaction, and the parts where two people might collide (like two admins editing the same match) use real database locking instead of hoping the timing works out.
+**완전한 리액티브** 스택 위에 만들어졌다. Spring WebFlux와 리액티브 PostgreSQL 드라이버인 R2DBC를 쓴다. 쉽게 말하면 backend는 데이터베이스를 기다리며 스레드를 절대 블로킹하지 않는다. 요청은 비동기 스트림(결과가 하나면 `Mono`, 여러 개면 `Flux`)으로 흘러간다. 클럽 규모의 트래픽에는 솔직히 과하다. 하지만 여기에 전면적으로 몸을 담근 덕분에 유용한 규율이 강제되었다. 여러 단계로 이루어진 모든 쓰기는 명시적인 트랜잭션이고, 두 사람이 충돌할 수 있는 지점(예: 두 관리자가 같은 매치를 동시에 수정)은 타이밍이 잘 맞기를 바라는 대신 실제 데이터베이스 락을 사용한다.
 
-It's also organized **by feature, not by layer** — there's an `auth` folder, a `match` folder, a `community` folder, each owning its own controllers, services, and database access. Adding a feature touches one folder, not five.
+또한 **계층이 아니라 기능 단위로** 구성되어 있다. `auth` 폴더, `match` 폴더, `community` 폴더가 각각 자기 컨트롤러, 서비스, 데이터베이스 접근을 소유한다. 기능 하나를 추가할 때 다섯 개가 아니라 한 개의 폴더만 건드리면 된다.
 
 
-### The frontend — what members actually touch (Flutter)
+### frontend — 회원이 실제로 만지는 것 (Flutter)
 
-The member-facing app. Built in Flutter so one codebase targets both iOS and Android. It talks to the backend over normal REST for most things, but for the live stuff — watching match results appear in real time — it holds a **WebSocket** connection. It also receives push notifications through Firebase.
+회원용 앱이다. 하나의 코드베이스로 iOS와 Android를 모두 대응하기 위해 Flutter로 만들었다. 대부분의 통신은 일반적인 REST로 backend와 주고받지만, 실시간 영역 — 매치 결과가 실시간으로 나타나는 것을 지켜보는 부분 — 에서는 **WebSocket** 연결을 유지한다. 푸시 알림은 Firebase를 통해 받는다.
 
-The app handles the messy realities of mobile: tokens that expire mid-session (it silently re-authenticates and retries), network connections that drop (the real-time socket reconnects on its own with increasing backoff), and switching between dev/test/production backends without rebuilding.
+앱은 모바일의 지저분한 현실을 처리한다. 사용 중에 만료되는 토큰(조용히 재인증하고 재시도한다), 끊기는 네트워크 연결(실시간 소켓이 백오프를 늘려가며 스스로 재연결한다), 그리고 재빌드 없이 dev/test/production 백엔드를 전환하는 기능까지.
 
-### The dashboard — the control room (Vue 3 + TypeScript)
+### dashboard — 관제실 (Vue 3 + TypeScript)
 
-Admins need a different surface than members. The dashboard is a web app — Vue 3, TypeScript, with data tables — for the organizational work: managing members, scheduling **sportsdays** (the club's term for a meetup/session), defining **seasons**, and adjusting the configuration that the rating engine reads. It logs in through the same backend with a separate admin authentication path.
+관리자에게는 회원과 다른 화면이 필요하다. dashboard는 웹 앱이다. Vue 3, TypeScript, 데이터 테이블로 구성되어 있으며 운영 업무를 담당한다. 회원 관리, **스포츠데이**(클럽에서 정모를 부르는 용어) 일정 관리, **시즌** 정의, 그리고 레이팅 엔진이 읽어가는 설정 조정이 여기에 해당한다. 같은 backend를 통해 로그인하되 별도의 관리자 인증 경로를 사용한다.
 
-### The PointCalculator — the ever-changing engine (Python, FastAPI, DuckDB)
+### PointCalculator — 계속 변하는 엔진 (Python, FastAPI, DuckDB)
 
-The rating engine is its own Python service, exposed through FastAPI, because the point system changes more often than the rest of the product. Sangwoo adjusts weights, experiments with seasonal rules, and asks for explanations when a number looks surprising. Keeping that logic outside the Spring Boot backend lets the API stay focused on the authoritative facts — members, matches, seasons, authentication — while the rating service focuses on replaying those facts into scores. A rules change becomes a rating-engine change, not a backend release.
+레이팅 엔진은 FastAPI로 노출된 독립적인 Python 서비스다. 점수 체계가 제품의 다른 부분보다 훨씬 자주 바뀌기 때문이다. 상우님은 가중치를 조정하고, 시즌별 규칙을 실험하고, 숫자가 의외로 나오면 설명을 요청한다. 이 로직을 Spring Boot backend 바깥에 두면 API는 권위 있는 사실 — 회원, 매치, 시즌, 인증 — 에 집중할 수 있고, 레이팅 서비스는 그 사실들을 점수로 재연하는 데 집중할 수 있다. 규칙 변경이 backend 릴리스가 아니라 레이팅 엔진 변경이 되는 것이다.
 
-DuckDB sits inside that service as the analytical layer. PointCalculator reads raw match history from PostgreSQL, uses DuckDB to aggregate and replay the data efficiently, then writes the derived leaderboards and levels into Redis for the backend to serve. The important boundary is ownership: PostgreSQL remains the source of truth, DuckDB holds disposable derived state, and Redis holds the fast read model. The details of that pipeline deserve their own post, but the short version is this: the extra service exists because the rating math is changeable, analytical, and safer when it is independent from the transactional API.
+DuckDB는 그 서비스 안에서 분석 계층 역할을 한다. PointCalculator는 PostgreSQL에서 원본 매치 히스토리를 읽고, DuckDB로 데이터를 효율적으로 집계·재연한 다음, 도출된 리더보드와 등급을 Redis에 써서 backend가 서빙하도록 한다. 여기서 중요한 경계는 소유권이다. PostgreSQL은 여전히 신뢰의 원천(source of truth)이고, DuckDB는 버려도 되는 파생 상태를 담으며, Redis는 빠른 읽기 모델을 담는다. 이 파이프라인의 세부 사항은 별도의 글을 받을 자격이 있지만, 짧게 요약하면 이렇다. 이 추가 서비스가 존재하는 이유는 레이팅 계산이 자주 바뀌고, 분석적이며, 트랜잭션 API로부터 독립되어 있을 때 더 안전하기 때문이다.
 
-### The supporting cast
+### 조연들
 
-Three more pieces hold it together:
+전체를 붙잡아주는 세 조각이 더 있다.
 
-- **Redis** is the fast shared layer — it caches the leaderboards (as sorted sets, so "give me the top 20" is instant) and acts as the contract between Python and Java. PointCalculator writes; the backend reads.
-- **RabbitMQ** decouples notifications. When a match is recorded, the backend doesn't wait around for Firebase to deliver a push — it drops a message on a queue and moves on. A separate consumer handles delivery, with retries and a dead-letter queue for failures. The user's request stays fast; the notification still gets delivered.
-- **MinIO** is S3-compatible storage for media (profile pictures, community photos). Crucially, uploads don't stream through the backend — the client gets a temporary signed URL and uploads *directly* to storage, so a big photo never bottlenecks the API.
+- **Redis**는 빠른 공유 계층이다. 리더보드를 캐싱하고(sorted set이라 "상위 20명 주세요"가 즉시다), Python과 Java 사이의 계약 역할을 한다. PointCalculator가 쓰고, backend가 읽는다.
+- **RabbitMQ**는 알림을 분리한다. 매치가 기록되면 backend는 Firebase가 푸시를 전달할 때까지 기다리지 않는다. 큐에 메시지를 던지고 넘어간다. 별도의 컨슈머가 전달을 담당하며, 재시도와 실패 처리용 데드레터 큐를 갖추고 있다. 사용자의 요청은 빠르게 유지되고, 알림은 그래도 전달된다.
+- **MinIO**는 미디어(프로필 사진, 커뮤니티 사진)를 위한 S3 호환 스토리지다. 핵심은 업로드가 backend를 거치지 않는다는 점이다. 클라이언트가 임시 서명 URL을 받아 스토리지에 *직접* 업로드하기 때문에, 큰 사진이 API의 병목이 되는 일이 없다.
 
-And in production, an optional **ELK stack** (Elasticsearch, Logstash, Kibana) aggregates structured logs so that when something breaks, there's a searchable trail instead of a shrug.
-
----
-
-## How a single match flows through all of it
-
-The architecture is easiest to feel through one concrete action. Someone finishes a game and records the result:
-
-1. The **Flutter app** sends the result to the **backend**.
-2. The backend validates it and writes the match into **PostgreSQL** — the new source-of-truth fact.
-3. The backend **broadcasts** the new match over WebSocket; every member watching the live feed sees it appear immediately.
-4. The backend drops a **notification message** onto RabbitMQ; a consumer delivers a push notification through Firebase without holding up anything else.
-5. The backend asks **PointCalculator** to recalculate from this match forward.
-6. PointCalculator reads the match history from PostgreSQL, replays it, recomputes ratings into its DuckDB file, and **rebuilds the leaderboards in Redis**.
-7. Next time anyone opens the leaderboard, the **backend reads the fresh numbers from Redis** and serves them.
-
-One user action, and every service plays its part — each doing exactly one job, none reaching into another's territory. That separation is the whole point. The competitive math can't corrupt the raw data. A slow notification can't slow down recording a match. A rating-logic change never touches the API.
+그리고 프로덕션에서는 선택적으로 **ELK 스택**(Elasticsearch, Logstash, Kibana)이 구조화된 로그를 모아준다. 그래서 무언가 깨졌을 때 어깨를 으쓱하는 대신 검색 가능한 흔적이 남는다.
 
 ---
 
-## Where the project is today
+## 매치 하나가 기록되면
 
-RV Badminton is **live in production**, used by the club regularly. The recent work has shifted from features to the things that keep a real system alive: migrating the entire stack to a new cloud server behind an automatic-HTTPS reverse proxy (with a careful, data-preserving runbook), wiring up centralized logging, consolidating configuration into a single source of truth shared across the Java and Python services, and adding end-to-end UI tests.
+서비스가 실제로 어떻게 움직이는지 보자. 누군가 경기를 마치고 결과를 기록한다.
 
-I'll also be honest about the rough edges, because a system this age always has them: test coverage is uneven, there's no automated CI/CD pipeline yet, the API isn't fully documented, and there's a legacy backend still waiting to be fully retired. None of these are dead-ends — they're the ordinary debt of a project that chose to ship to real users first. I'll cover how I'm working them down as the series goes on.
+1. **Flutter 앱**이 결과를 **backend**로 보낸다.
+2. backend가 이를 검증하고 매치를 **PostgreSQL**에 쓴다. 새로운 source-of-truth 사실이 생긴 것이다.
+3. backend가 새 매치를 WebSocket으로 **브로드캐스트**한다. 실시간 피드를 보고 있던 모든 회원이 즉시 그것이 나타나는 것을 본다.
+4. backend가 **알림 메시지**를 RabbitMQ에 던진다. 컨슈머가 Firebase를 통해 푸시 알림을 전달하며, 그동안 다른 어떤 것도 붙잡아두지 않는다.
+5. backend가 **PointCalculator**에 이 매치 시점부터 재계산하라고 요청한다.
+6. PointCalculator가 PostgreSQL에서 매치 히스토리를 읽어 재연하고, 레이팅을 자신의 DuckDB 파일에 다시 계산해 넣은 뒤, **Redis의 리더보드를 재구축한다**.
+7. 다음에 누군가 리더보드를 열면, **backend가 Redis에서 갱신된 숫자를 읽어** 서빙한다.
+
+한 번의 사용자 동작에 여러 서비스가 각자 맡은 일을 한다. 원본 데이터, 레이팅 계산, 알림 처리를 분리했기 때문에 느린 알림이 매치 기록을 막거나 레이팅 로직 변경이 API까지 번지는 일을 줄일 수 있다.
 
 ---
 
-## What's coming next
+## 프로젝트의 현재
 
-This was the map. In future posts, I'll go deeper on:
+RV Badminton은 **프로덕션에서 라이브로** 운영 중이며, 클럽이 정기적으로 사용하고 있다. 최근 작업은 기능에서 벗어나 실제 시스템을 살아 있게 유지하는 쪽으로 옮겨갔다. 자동 HTTPS 리버스 프록시 뒤의 새 클라우드 서버로 전체 스택을 이전하는 작업(데이터를 보존하는 신중한 런북과 함께), 중앙 집중식 로깅 연결, Java와 Python 서비스가 공유하는 단일 설정 소스로의 통합, 그리고 엔드투엔드 UI 테스트 추가 같은 것들이다.
 
-- Why the backend is fully reactive
-- Why the ratings live in a separate Python service
-- How the rating math actually works
-- Real-time match updates and async push notifications
-- The community module and media uploads
-- Keeping a four-service system sane to run locally
+아직 거친 부분도 있다. 테스트 커버리지는 고르지 않고, 자동화된 CI/CD와 완전한 API 문서는 남은 과제다. 정리되지 않은 레거시 백엔드도 있다. 실사용자에게 먼저 배포하기로 한 프로젝트에 남는 부채이며, 이후 글에서 줄여 가는 과정을 다룰 예정이다.
 
-The first of those is up now: [Chapter 2 — PointCalculator]({% link projects/rv-badminton-app/pointcalculator.md %}).
+---
 
-If there's a thread running through all of it, it's this: **every bit of complexity in RV Badminton can be traced back to a concrete constraint.** It started as a way to stop arguing about rankings in a group chat. It became the most complete piece of system design I've built.
+RV Badminton은 거창한 아이디어에서 시작하지 않았다. 단톡방을 뒤져 점수를 세고, 순위를 기다리고, 기록을 찾지 않아도 됐으면 했다. 그 불편을 고치려고 내가 직접 앱을 만들었고, 지금은 내가 가장 오래 운영해 본 서비스가 됐다.

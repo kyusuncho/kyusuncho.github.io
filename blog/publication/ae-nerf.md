@@ -2,6 +2,12 @@
 title: AE-NeRF
 parent: Publications
 nav_order: 4
+card_title: "AE-NeRF: Auto-Encoding Neural Radiance Fields for 3D-Aware Object Manipulation"
+card_eyebrow: arXiv 2023
+card_excerpt: An auto-encoder that disentangles shape, appearance, and camera pose from a single image, then renders them back through a generative NeRF.
+card_image: /assets/images/ae-nerf.png
+card_alt: AE-NeRF teaser
+card_tags: 3D, NeRF, auto-encoder, disentanglement
 ---
 
 # AE-NeRF: Auto-Encoding Neural Radiance Fields for 3D-Aware Object Manipulation

@@ -2,6 +2,12 @@
 title: GaussianTalker
 parent: Publications
 nav_order: 1
+card_title: "GaussianTalker: Real-Time High-Fidelity Talking Head Synthesis with Audio-Driven 3D Gaussian Splatting"
+card_eyebrow: ACM Multimedia 2024
+card_excerpt: Encodes 3D Gaussian attributes into a shared implicit feature that speech audio can steer, rendering pose-controllable talking heads at up to 120 FPS.
+card_image: /assets/images/GaussianTalker.png
+card_alt: GaussianTalker teaser
+card_tags: 3D, gaussian-splatting, talking-head, real-time
 ---
 
 # GaussianTalker: Real-Time High-Fidelity Talking Head Synthesis with Audio-Driven 3D Gaussian Splatting

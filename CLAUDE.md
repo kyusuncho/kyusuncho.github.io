@@ -74,6 +74,46 @@ nav_exclude: true        # hides from nav; page still builds & is reachable by U
 Also useful: `search_exclude: true` (omit from search), `published: false` (don't build at all).
 Existing examples to copy from: `blog/search.md`, `blog/minimal-test.md`.
 
+## Section index pages: the child list is a card grid
+
+Any page with `has_children: true` (Projects, Publications, RV Badminton App) automatically
+lists its children below the content. That list renders as **post cards** — thumbnail,
+accent eyebrow, title, blurb, tag chips — not bullets. Nothing is written in the index page
+itself: each **child** describes its own card through front matter.
+
+```markdown
+---
+title: Talk3D                       # still what the sidebar shows
+parent: Publications
+card_title: "Talk3D: High-Fidelity Talking Portrait Synthesis…"   # longer title, card only
+card_eyebrow: ICCV 2025 Workshop    # small uppercase accent line
+card_excerpt: One or two sentences on what the work does.
+card_image: /assets/images/talk3d_teaser.png    # site-absolute, under assets/
+card_alt: Talk3D teaser
+card_tags: 3D, NeRF, generative-prior           # comma-separated, rendered as #chips
+---
+```
+
+Every field is optional. `card_title` falls back to `title`, `card_excerpt` to the theme's
+`summary`. Other keys:
+
+- `card_video: /assets/…​.mp4` — a looping muted teaser instead of an image.
+- `card_media: device` — for portrait phone screenshots. Floats the shot over a tinted panel
+  instead of centre-cropping it to a landscape frame, which would throw the screen away.
+- `card_media: glyph` + `card_glyph: "01"` — a numeral/monogram cover for entries with no
+  artwork of their own (the RV Badminton chapters). **A card with no `card_image` and no
+  `card_video` falls back to this automatically**, using the title's first letter, so adding
+  a page without artwork never leaves a hole in the grid.
+
+The heading above the grid defaults to "Table of contents"; override it per index page with
+`toc_heading: Papers`. `has_toc: false` still drops the whole section.
+
+Implementation: `_includes/components/post_card.html` (one card), the tail of
+`_includes/components/children_nav.html` (loops the children into `.post-grid`), and
+`_sass/custom/_post-cards.scss`. The card title is deliberately a `<div>`, not a heading —
+the "On this page" panel is built from rendered `h2`/`h3`, and card titles are navigation
+rather than part of the page outline.
+
 ## The "On this page" panel (right-hand TOC)
 
 Every page automatically gets a sticky table of contents on the right, built from its own

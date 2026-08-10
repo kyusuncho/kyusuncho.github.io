@@ -1,0 +1,56 @@
+{%- comment -%}
+  A "post box": thumbnail + eyebrow + title + blurb + tags, wrapped in one
+  card-wide link. Used by the section index pages in place of a bullet list.
+
+  Normally you do not call this directly: components/children_nav.html renders
+  one card per child page from that page's own `card_*` front matter, so a
+  section index lists itself. Call it by hand only for a one-off card.
+
+  Parameters
+    href      (required) URL the whole card links to.
+    title     (required) Card headline. Deliberately not a heading — the
+              "On this page" panel is built from rendered h2/h3, and card
+              titles are navigation, not part of the page outline.
+    eyebrow   Small uppercase accent line above the title (venue, chapter, …).
+    excerpt   One- or two-sentence blurb.
+    tags      Comma-separated list; each item is rendered as a "#tag" chip.
+    media     Thumbnail treatment: "cover" (default) fills the frame,
+              "device" floats a portrait app screenshot over a tinted panel,
+              "glyph" draws a numeral/monogram. With no `image` or `video` to
+              show, "glyph" is used regardless, so a card added without artwork
+              still gets a cover instead of a hole in the grid.
+    image     Site-absolute image path, e.g. "/assets/images/foo.png".
+    video     Site-absolute video path; used instead of `image` when given.
+    alt       Alt text for `image`. Cards are decorative next to their own
+              title, so this defaults to empty rather than repeating it.
+    glyph     Text drawn by the "glyph" treatment (e.g. "01"); defaults to the
+              title's first character.
+{%- endcomment -%}
+{%- assign media = include.media | default: "cover" -%}
+{%- if include.image == nil and include.video == nil -%}{%- assign media = "glyph" -%}{%- endif -%}
+{%- if include.glyph -%}
+{%- assign glyph = include.glyph -%}
+{%- else -%}
+{%- assign glyph = include.title | slice: 0 | upcase -%}
+{%- endif -%}
+<a class="post-card" href="{{ include.href }}">
+{%- if media == "glyph" -%}
+<span class="post-card-media post-card-media--glyph"><span class="post-card-glyph" aria-hidden="true">{{ glyph }}</span></span>
+{%- elsif include.video -%}
+<span class="post-card-media post-card-media--cover"><video src="{{ include.video | relative_url }}" autoplay muted loop playsinline aria-hidden="true"></video></span>
+{%- else -%}
+<span class="post-card-media post-card-media--{{ media }}"><img src="{{ include.image | relative_url }}" alt="{{ include.alt | default: '' }}" loading="lazy"></span>
+{%- endif -%}
+<span class="post-card-body">
+{%- if include.eyebrow -%}<span class="post-card-eyebrow">{{ include.eyebrow }}</span>{%- endif -%}
+<span class="post-card-title">{{ include.title }}</span>
+{%- if include.excerpt -%}<span class="post-card-excerpt">{{ include.excerpt }}</span>{%- endif -%}
+{%- if include.tags -%}
+<span class="post-card-tags">
+{%- assign tag_list = include.tags | split: "," -%}
+{%- for tag in tag_list -%}<span class="post-card-tag">#{{ tag | strip }}</span>{%- endfor -%}
+</span>
+{%- endif -%}
+</span>
+<span class="post-card-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span>
+</a>

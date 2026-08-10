@@ -77,14 +77,31 @@
     {%- assign nav_children = nav_children | reverse -%}
   {%- endif -%}
 
+{%- comment -%}
+  Rendered as post cards rather than a bullet list. Each child supplies its own
+  cover and blurb through `card_*` front matter (see components/post_card.html);
+  a child with none still gets a card, just with a monogram cover and its nav
+  title. `summary` is the theme's own field, so it stays the excerpt fallback.
+{%- endcomment -%}
 <hr>
 {% include toc_heading_custom.html %}
-<ul>
-  {% for nav_child in nav_children %}
-  <li>
-    <a href="{{ nav_child.url | relative_url }}">{{ nav_child.title }}</a>{% if nav_child.summary %} - {{ nav_child.summary }}{% endif %}
-  </li>
-  {% endfor %}
-</ul>
+<div class="post-grid">
+  {%- for nav_child in nav_children -%}
+    {%- capture nav_child_href -%}{{ nav_child.url | relative_url }}{%- endcapture -%}
+    {%- assign nav_child_title = nav_child.card_title | default: nav_child.title -%}
+    {%- assign nav_child_excerpt = nav_child.card_excerpt | default: nav_child.summary -%}
+    {%- include components/post_card.html
+        href=nav_child_href
+        eyebrow=nav_child.card_eyebrow
+        title=nav_child_title
+        excerpt=nav_child_excerpt
+        tags=nav_child.card_tags
+        media=nav_child.card_media
+        image=nav_child.card_image
+        video=nav_child.card_video
+        alt=nav_child.card_alt
+        glyph=nav_child.card_glyph -%}
+  {%- endfor -%}
+</div>
 
 {%- endif -%}
