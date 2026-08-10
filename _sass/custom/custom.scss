@@ -1,5 +1,177 @@
 // custom SCSS (or CSS) goes here
 
+@import "./post-cards";
+
+// ---------------------------------------------------------------------------
+// "On this page" panel
+//
+// A sticky right-hand table of contents in the VitePress / Docusaurus mould:
+// a hairline rail with an accent segment marking the section currently in view.
+// Markup comes from _includes/toc_aside_custom.html, scroll-spy from
+// _includes/js/custom.js.
+//
+// The panel is absolutely positioned just outside `.main` (which is
+// `position: relative` from `md` up), so it costs the content column nothing.
+// It only appears once the viewport can hold sidebar + content + panel without
+// crowding the window edges; below that the anchors are still reachable through
+// the headings themselves.
+// ---------------------------------------------------------------------------
+
+$toc-aside-width: 14rem;
+$toc-aside-gap: $sp-4;
+// Wider inner gutter than the theme's default $gutter-spacing, so the article
+// is not crowded against the nav on one side and the panel on the other. Puts
+// the text 48px from the sidebar edge and 64px from the panel's rail, and
+// narrows the measure to 44rem — squarely in the comfortable range.
+$content-gutter-wide: $sp-8;
+// Sidebar + content + panel, plus a window-edge margin: 83.5rem / 1336px.
+$toc-aside-breakpoint: $nav-width + $content-width + $toc-aside-width +
+  $toc-aside-gap + $sp-6;
+
+.toc-aside {
+  display: none;
+}
+
+@media (min-width: $toc-aside-breakpoint) {
+  // Re-centre sidebar + content + panel as one block. The theme sizes the
+  // sidebar and the content's left margin from the same expression, so both
+  // have to lose the panel's width together or the two columns overlap.
+  //
+  // The panel's column is reserved on *every* page, including pages with no
+  // panel to put in it. Sizing it per-page instead would move the sidebar and
+  // the content column sideways each time you navigated between a page with
+  // headings and one without.
+  $toc-aside-offset: calc(
+    (100% - #{$nav-width + $content-width + $toc-aside-width + $toc-aside-gap}) / 2 +
+      #{$nav-width}
+  );
+
+  .side-bar {
+    width: $toc-aside-offset;
+  }
+
+  .side-bar + .main {
+    margin-left: $toc-aside-offset;
+  }
+
+  .main-content-wrap {
+    padding-right: $content-gutter-wide;
+    padding-left: $content-gutter-wide;
+  }
+
+  // Keep the header's search field aligned with the body text it searches.
+  .search-label {
+    padding-left: $content-gutter-wide;
+  }
+
+  .search-input {
+    padding-left: $content-gutter-wide + $sp-5;
+  }
+
+  .toc-aside {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 100%;
+    display: block;
+    width: $toc-aside-width;
+    padding-left: $toc-aside-gap;
+    // Start level with the first line of content, below the page header.
+    padding-top: $header-height + $gutter-spacing;
+  }
+}
+
+.toc-aside-inner {
+  position: sticky;
+  top: $sp-6;
+  max-height: calc(100vh - #{$sp-6 * 2});
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+// Matches the accent "eyebrow" used by the CV sections and publication venues.
+.toc-aside-title {
+  margin: 0 0 $sp-2;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: $link-color;
+}
+
+.toc-aside-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-left: $border $border-color;
+}
+
+.toc-aside-item + .toc-aside-item {
+  margin-top: 0;
+}
+
+.toc-aside-link {
+  display: block;
+  // Pulled back over the list rail so the active bar replaces it rather than
+  // sitting beside it.
+  margin-left: -1px;
+  padding: $sp-1 0 $sp-1 $sp-3;
+  border-left: 2px solid transparent;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: $body-text-color;
+  opacity: 0.7;
+  transition: color $transition-duration ease, border-color $transition-duration ease,
+    opacity $transition-duration ease;
+
+  &:hover {
+    color: $link-color;
+    opacity: 1;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $link-color;
+    outline-offset: -2px;
+  }
+
+  &.is-active {
+    color: $link-color;
+    border-left-color: $link-color;
+    opacity: 1;
+  }
+}
+
+// Sub-sections read as a second tier: indented, quieter, slightly smaller.
+.toc-aside-item--h3 .toc-aside-link {
+  padding-left: $sp-5;
+  font-size: 0.72rem;
+  opacity: 0.6;
+
+  &:hover,
+  &.is-active {
+    opacity: 1;
+  }
+}
+
+// Anchor jumps land with breathing room above the heading rather than flush
+// against the viewport edge.
+.main-content {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    scroll-margin-top: $sp-6;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 // Sidebar-footer social/utility buttons (theme toggle, GitHub, email, Scholar).
 // Rendered via _includes/nav_footer_custom.html in both the desktop sidebar and
 // the mobile page footer.
@@ -283,4 +455,29 @@
     outline: 2px solid $link-color;
     outline-offset: 2px;
   }
+}
+
+// Portrait phone screenshots in posts. These are ~1:2.2 tall, so letting them
+// fill the content column would push everything else off the screen — cap the
+// width and centre them so they read as device shots rather than figures.
+.post-shot {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  margin: $sp-5 auto $sp-2;
+  border: $border $border-color;
+  border-radius: $border-radius;
+}
+
+// Muted via opacity rather than a fixed grey, so the caption stays legible in
+// both the light and dark schemes.
+.post-caption {
+  max-width: 34rem;
+  margin: 0 auto $sp-6;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: $body-text-color;
+  text-align: center;
+  opacity: 0.72;
 }

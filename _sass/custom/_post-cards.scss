@@ -1,0 +1,249 @@
+// ---------------------------------------------------------------------------
+// Post cards
+//
+// The section index pages (Projects, Publications, and the RV Badminton series)
+// list their contents as cards rather than bullets. Markup comes from
+// _includes/components/post_card.html.
+//
+// One card shape everywhere, so the three indexes read as the same system: a
+// thumbnail rail on the left, an accent eyebrow / title / blurb / tag stack on
+// the right, and a chevron that slides in on hover. The card is a single link,
+// so the whole box is the target rather than a few words of it.
+//
+// Sizing is deliberately count-agnostic: full-width rows work with one card
+// (Projects) as well as with four (Publications), where a two-up grid would
+// leave a lone card stranded beside an empty column.
+// ---------------------------------------------------------------------------
+
+$post-card-media-width: 12.5rem;
+// Softer than the theme's 4px default — the cards are the largest surfaces on
+// these pages, and the sharper radius reads as a table row rather than a card.
+$post-card-radius: 0.5rem;
+// Below this the media rail is too narrow to show anything, so the card stacks.
+$post-card-stack-width: 34rem;
+
+.post-grid {
+  display: grid;
+  gap: $sp-4;
+  margin: $sp-5 0 $sp-6;
+}
+
+.post-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: $post-card-media-width 1fr;
+  overflow: hidden;
+  color: $body-text-color;
+  // The theme underlines in-content links with a background gradient.
+  background-color: $body-background-color;
+  background-image: none;
+  border: $border $border-color;
+  border-radius: $post-card-radius;
+  // Compositor-friendly properties plus paint-only colour changes.
+  transition: transform $transition-duration ease, box-shadow $transition-duration ease,
+    border-color $transition-duration ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: rgba($link-color, 0.4);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $link-color;
+    outline-offset: 2px;
+  }
+
+  @media (max-width: $post-card-stack-width) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// --- Thumbnail -------------------------------------------------------------
+
+.post-card-media {
+  position: relative;
+  overflow: hidden;
+  // Stretches to the body's height in the row layout; the minimum keeps short
+  // cards from collapsing the thumbnail to a sliver.
+  min-height: 9rem;
+  background-color: rgba($link-color, 0.06);
+
+  @media (max-width: $post-card-stack-width) {
+    aspect-ratio: 16 / 9;
+    min-height: 0;
+  }
+}
+
+// Wide teasers (paper figures, video loops) fill the frame.
+.post-card-media--cover {
+  img,
+  video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform $transition-duration ease;
+  }
+}
+
+.post-card:hover .post-card-media--cover img,
+.post-card:hover .post-card-media--cover video {
+  transform: scale(1.04);
+}
+
+// Portrait app screenshots are ~1:2.2, so cropping them to a landscape frame
+// throws away the screen. Float the device over a tinted panel instead and let
+// it run off the bottom edge, the way an app listing shows a screen.
+.post-card-media--device {
+  background-image: linear-gradient(
+    155deg,
+    rgba($link-color, 0.24),
+    rgba($link-color, 0.05)
+  );
+
+  img {
+    position: absolute;
+    top: 14%;
+    left: 50%;
+    width: 58%;
+    height: auto;
+    border-radius: $border-radius;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+    transform: translateX(-50%);
+    transition: transform $transition-duration ease;
+  }
+}
+
+.post-card:hover .post-card-media--device img {
+  transform: translateX(-50%) translateY(-4px);
+}
+
+// Fallback cover for entries with no screenshot of their own (series chapters).
+// A numeral on a tinted panel is honest about having no image, and keeps a
+// chapter list visually uniform instead of pairing one real shot with a blank.
+.post-card-media--glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-image: radial-gradient(circle at 30% 20%, rgba($link-color, 0.22), transparent 62%),
+    linear-gradient(150deg, rgba($link-color, 0.14), rgba($link-color, 0.03));
+}
+
+.post-card-glyph {
+  font-size: 2.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: $link-color;
+  opacity: 0.5;
+  transition: transform $transition-duration ease, opacity $transition-duration ease;
+}
+
+.post-card:hover .post-card-glyph {
+  transform: scale(1.06);
+  opacity: 0.75;
+}
+
+// --- Body ------------------------------------------------------------------
+
+.post-card-body {
+  display: flex;
+  flex-direction: column;
+  // Room on the right for the hover chevron.
+  padding: $sp-4 $sp-6 $sp-4 $sp-4;
+  // Long unbroken titles must wrap rather than widen the grid track.
+  min-width: 0;
+}
+
+.post-card-eyebrow {
+  margin-bottom: $sp-1;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $link-color;
+}
+
+.post-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: $body-heading-color;
+  transition: color $transition-duration ease;
+}
+
+.post-card:hover .post-card-title {
+  color: $link-color;
+}
+
+// Muted with opacity rather than a fixed grey so it stays legible in both
+// colour schemes.
+.post-card-excerpt {
+  margin-top: $sp-2;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: $body-text-color;
+  opacity: 0.75;
+}
+
+// `margin-top: auto` pins the chips to the bottom edge so they line up across
+// cards of differing blurb lengths.
+.post-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $sp-1;
+  margin-top: auto;
+  padding-top: $sp-3;
+}
+
+.post-card-tag {
+  padding: 0.08em 0.6em;
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: $link-color;
+  border: $border $border-color;
+  border-radius: 100px;
+}
+
+.post-card-arrow {
+  position: absolute;
+  top: 50%;
+  right: $sp-3;
+  display: flex;
+  color: $link-color;
+  opacity: 0;
+  transform: translateY(-50%);
+  transition: opacity $transition-duration ease, transform $transition-duration ease;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.post-card:hover .post-card-arrow,
+.post-card:focus-visible .post-card-arrow {
+  opacity: 1;
+  transform: translateY(-50%) translateX(3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .post-card,
+  .post-card-media--cover img,
+  .post-card-media--cover video,
+  .post-card-media--device img,
+  .post-card-glyph,
+  .post-card-arrow {
+    transition: none;
+  }
+
+  .post-card:hover,
+  .post-card:hover .post-card-media--cover img,
+  .post-card:hover .post-card-media--cover video,
+  .post-card:hover .post-card-glyph {
+    transform: none;
+  }
+}

@@ -45,3 +45,6 @@ examples/
 .planning
 .claude
 .agents
+
+# Browser-automation scratch output (screenshots, page snapshots)
+.playwright-mcp/

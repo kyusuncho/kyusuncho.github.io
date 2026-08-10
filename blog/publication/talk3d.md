@@ -2,6 +2,12 @@
 title: Talk3D
 parent: Publications
 nav_order: 2
+card_title: "Talk3D: High-Fidelity Talking Portrait Synthesis via Personalized 3D Generative Prior"
+card_eyebrow: ICCV 2025 Workshop
+card_excerpt: Drives a personalized 3D generative prior with an audio-guided attention U-Net, so facial geometry stays plausible even under extreme head poses.
+card_image: /assets/images/talk3d_teaser.png
+card_alt: Talk3D teaser
+card_tags: 3D, talking-portrait, NeRF, generative-prior
 ---
 
 # Talk3D: High-Fidelity Talking Portrait Synthesis via Personalized 3D Generative Prior

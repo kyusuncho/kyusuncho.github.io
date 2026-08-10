@@ -2,6 +2,11 @@
 title: 3D GAN Inversion
 parent: Publications
 nav_order: 3
+card_title: 3D GAN Inversion with Pose Optimization
+card_eyebrow: WACV 2023
+card_excerpt: Infers camera viewpoint and latent code together, so a single image can be reconstructed and edited with multi-view consistency.
+card_video: /assets/images/tim_cook.mp4
+card_tags: 3D, GAN-inversion, NeRF, editing
 ---
 
 # 3D GAN Inversion with Pose Optimization
