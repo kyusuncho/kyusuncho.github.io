@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>흐름 B — 순차 큐를 통한 실시간 재계산</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:  #f5f5f5;
+      --color-ink:    #2d3142;
+      --color-muted:  #4f5d75;
+      --color-accent: #eb6c36;
+      --font-sans:  'Geist', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', system-ui, sans-serif;
+      --font-serif: 'Instrument Serif', 'Nanum Myeongjo', serif;
+      --font-mono:  'Geist Mono', 'Apple SD Gothic Neo', 'Noto Sans KR', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; min-width: 760px; display: block; }
+    svg .legend-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.12em; }
+    svg .node-name { font-family: var(--font-sans); font-size: 16px; font-weight: 600; }
+    svg .sublabel { font-family: var(--font-mono); font-size: 12px; }
+    svg .msg-label { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.02em; }
+    /* Embed mode: the blog iframes this file with #embed to hide the page chrome (CSS-only, no JS). */
+    body:has(.frame:target) { padding: 0; }
+    .frame:target { max-width: none; }
+    .frame:target .eyebrow, .frame:target h1 { display: none; }
+    .frame:target svg { min-width: 0; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div class="frame" id="embed">
+    <p class="eyebrow">Sequence · RV Badminton PointCalculator</p>
+    <h1>흐름 B — 순차 큐를 통한 실시간 재계산</h1>
+
+    <svg viewBox="0 0 960 632" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="rv-recalc-title rv-recalc-desc">
+      <title id="rv-recalc-title">흐름 B — 순차 큐를 통한 실시간 재계산</title>
+      <desc id="rv-recalc-desc">매치가 저장되면 Spring Boot가 트랜잭션을 커밋한 뒤 매치 ID를 큐에 넣고, 컨슈머 스레드가 PointCalculator의 recalc를 블로킹 호출한다. PointCalculator는 그 시점 이후를 시간순으로 재연해 DuckDB와 Redis를 갱신하고 200 OK로 응답한다.</desc>
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+        <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+        <marker id="arrow-open" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polyline points="0 0, 8 3, 0 6" fill="none" stroke="#4f5d75" stroke-width="1.2"/></marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+      <!-- ═══ Lifelines ═══ -->
+      <line x1="112" y1="104" x2="112" y2="556" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="296" y1="104" x2="296" y2="556" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="480" y1="104" x2="480" y2="556" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="664" y1="104" x2="664" y2="556" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="848" y1="104" x2="848" y2="556" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="3,3"/>
+
+      <!-- ═══ Activation bars ═══ -->
+      <rect x="108" y="140" width="8" height="44" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+      <rect x="292" y="176" width="8" height="360" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+      <rect x="476" y="212" width="8" height="272" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+      <rect x="660" y="140" width="8" height="12" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+      <rect x="660" y="248" width="8" height="12" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+      <rect x="660" y="344" width="8" height="12" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+      <rect x="844" y="440" width="8" height="12" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+
+      <!-- ═══ Messages ═══ -->
+      <!-- m1: SB → PG : commit match tx -->
+      <line x1="116" y1="144" x2="660" y2="144" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="516" y="116" width="112" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="572" y="130" class="msg-label" fill="#4f5d75" text-anchor="middle">매치 저장 커밋</text>
+
+      <!-- m2: SB → Q : enqueue (async, open head) -->
+      <line x1="116" y1="180" x2="292" y2="180" stroke="#4f5d75" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow-open)"/>
+      <rect x="142" y="152" width="124" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="204" y="166" class="msg-label" fill="#4f5d75" text-anchor="middle">enqueue(matchId)</text>
+
+      <!-- m3: Q → PC : POST /recalc (blocking) -->
+      <line x1="300" y1="216" x2="476" y2="216" stroke="#2e5aa8" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+      <rect x="340" y="188" width="96" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="388" y="202" class="msg-label" fill="#2e5aa8" text-anchor="middle">POST /recalc</text>
+
+      <!-- m4: PC → PG : fetch match_date_time -->
+      <line x1="484" y1="252" x2="660" y2="252" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="496" y="224" width="152" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="572" y="238" class="msg-label" fill="#4f5d75" text-anchor="middle">match_date_time 조회</text>
+
+      <!-- m5: PC self : delete DuckDB records after timestamp -->
+      <path d="M 484,288 H 516 Q 524,288 524,296 V 304 Q 524,312 516,312 H 488"
+            fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <text x="536" y="305" class="msg-label" fill="#4f5d75">DuckDB 레코드 삭제</text>
+
+      <!-- m6: PC → PG : fetch all matches after timestamp -->
+      <line x1="484" y1="348" x2="660" y2="348" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="508" y="320" width="128" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="572" y="334" class="msg-label" fill="#4f5d75" text-anchor="middle">이후 전체 매치 조회</text>
+
+      <!-- m7: PC self : chronological replay (headline, accent) -->
+      <path d="M 484,384 H 516 Q 524,384 524,392 V 400 Q 524,408 516,408 H 488"
+            fill="none" stroke="#eb6c36" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+      <text x="536" y="401" class="msg-label" fill="#eb6c36">시간순 재연 · 기록</text>
+
+      <!-- m8: PC → RD : refresh leaderboard -->
+      <line x1="484" y1="444" x2="844" y2="444" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="532" y="416" width="96" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="580" y="430" class="msg-label" fill="#4f5d75" text-anchor="middle">리더보드 갱신</text>
+
+      <!-- m9: PC --> Q : 200 OK (return) -->
+      <line x1="476" y1="480" x2="300" y2="480" stroke="#4f5d75" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+      <rect x="356" y="452" width="64" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="388" y="466" class="msg-label" fill="#4f5d75" text-anchor="middle">200 OK</text>
+
+      <!-- m10: Q self : wait for next item -->
+      <path d="M 300,508 H 332 Q 340,508 340,516 V 524 Q 340,532 332,532 H 304"
+            fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <text x="352" y="525" class="msg-label" fill="#4f5d75">다음 아이템 대기</text>
+
+      <!-- ═══ Actors ═══ -->
+      <rect x="40" y="48" width="144" height="56" rx="6" fill="#f5f5f5"/>
+      <rect x="40" y="48" width="144" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="112" y="74" class="node-name" fill="#2d3142" text-anchor="middle">Spring Boot</text>
+      <text x="112" y="94" class="sublabel" fill="#4f5d75" text-anchor="middle">backend</text>
+
+      <rect x="224" y="48" width="144" height="56" rx="6" fill="#f5f5f5"/>
+      <rect x="224" y="48" width="144" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="296" y="74" class="node-name" fill="#2d3142" text-anchor="middle">Queue</text>
+      <text x="296" y="94" class="sublabel" fill="#4f5d75" text-anchor="middle">consumer thread</text>
+
+      <rect x="408" y="48" width="144" height="56" rx="6" fill="#f5f5f5"/>
+      <rect x="408" y="48" width="144" height="56" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+      <text x="480" y="74" class="node-name" fill="#2d3142" text-anchor="middle">PointCalculator</text>
+      <text x="480" y="94" class="sublabel" fill="#4f5d75" text-anchor="middle">fastapi</text>
+
+      <rect x="592" y="48" width="144" height="56" rx="6" fill="#f5f5f5"/>
+      <rect x="592" y="48" width="144" height="56" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <text x="664" y="74" class="node-name" fill="#2d3142" text-anchor="middle">PostgreSQL</text>
+      <text x="664" y="94" class="sublabel" fill="#4f5d75" text-anchor="middle">원본 저장소</text>
+
+      <rect x="776" y="48" width="144" height="56" rx="6" fill="#f5f5f5"/>
+      <rect x="776" y="48" width="144" height="56" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <text x="848" y="74" class="node-name" fill="#2d3142" text-anchor="middle">Redis</text>
+      <text x="848" y="94" class="sublabel" fill="#4f5d75" text-anchor="middle">결과 저장소</text>
+
+      <!-- ═══ Legend ═══ -->
+      <line x1="40" y1="580" x2="920" y2="580" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <text x="40" y="608" class="legend-label" fill="#4f5d75">LEGEND</text>
+      <line x1="132" y1="603" x2="172" y2="603" stroke="#2e5aa8" stroke-width="1.2"/>
+      <text x="184" y="608" class="sublabel" fill="#4f5d75">HTTP 호출</text>
+      <line x1="288" y1="603" x2="328" y2="603" stroke="#4f5d75" stroke-width="1.2"/>
+      <text x="340" y="608" class="sublabel" fill="#4f5d75">내부 호출</text>
+      <line x1="444" y1="603" x2="484" y2="603" stroke="#4f5d75" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow-open)"/>
+      <text x="496" y="608" class="sublabel" fill="#4f5d75">비동기 투입</text>
+      <line x1="612" y1="603" x2="652" y2="603" stroke="#4f5d75" stroke-width="1" stroke-dasharray="5,4"/>
+      <text x="664" y="608" class="sublabel" fill="#4f5d75">응답</text>
+      <line x1="756" y1="603" x2="796" y2="603" stroke="#eb6c36" stroke-width="1.2"/>
+      <text x="808" y="608" class="sublabel" fill="#4f5d75">핵심 재연</text>
+    </svg>
+  </div>
+</body>
+</html>

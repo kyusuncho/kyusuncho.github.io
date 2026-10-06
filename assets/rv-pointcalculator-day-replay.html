@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>하루 단위 리플레이 — 정산, 출석 장벽, 피드포워드</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:  #f5f5f5;
+      --color-ink:    #2d3142;
+      --color-muted:  #4f5d75;
+      --color-accent: #eb6c36;
+      --font-sans:  'Geist', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', system-ui, sans-serif;
+      --font-serif: 'Instrument Serif', 'Nanum Myeongjo', serif;
+      --font-mono:  'Geist Mono', 'Apple SD Gothic Neo', 'Noto Sans KR', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; min-width: 760px; display: block; }
+    svg .legend-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.12em; }
+    svg .node-name { font-family: var(--font-sans); font-size: 16px; font-weight: 600; }
+    svg .sublabel { font-family: var(--font-mono); font-size: 12px; }
+    svg .msg-label { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.02em; }
+    svg .aside { font-family: var(--font-serif); font-style: italic; font-size: 16px; }
+    /* Embed mode: the blog iframes this file with #embed to hide the page chrome (CSS-only, no JS). */
+    body:has(.frame:target) { padding: 0; }
+    .frame:target { max-width: none; }
+    .frame:target .eyebrow, .frame:target h1 { display: none; }
+    .frame:target svg { min-width: 0; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div class="frame" id="embed">
+    <p class="eyebrow">Flowchart · RV Badminton PointCalculator</p>
+    <h1>하루 단위 리플레이 — 정산, 출석 장벽, 피드포워드</h1>
+
+    <svg viewBox="0 0 960 736" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="rv-dayreplay-title rv-dayreplay-desc">
+      <title id="rv-dayreplay-title">하루 단위 리플레이 — 정산, 출석 장벽, 피드포워드</title>
+      <desc id="rv-dayreplay-desc">recalc_from_date가 경계일 이후 원장을 지우고 직전 스냅샷으로 MMR을 시드한 뒤, 오늘 이하의 스포츠데이를 하루씩 돌며 그날 매치를 제로섬 정산하고, 종료 시점 출석 패스를 적용하고, end_of_day_mmr을 다음 날로 넘긴다. 루프가 끝나면 게임 포인트를 집계하고 Redis 리더보드를 재구축한다.</desc>
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+        <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+      <!-- ═══ Connectors (drawn before nodes) ═══ -->
+      <!-- A → BC -->
+      <line x1="320" y1="88" x2="320" y2="128" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <!-- BC → D -->
+      <line x1="320" y1="192" x2="320" y2="224" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <!-- D → F (yes) -->
+      <line x1="320" y1="312" x2="320" y2="352" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="332" y="320" width="120" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="336" y="334" class="msg-label" fill="#4f5d75">예 · 그날을 정산</text>
+      <!-- D → I (no) -->
+      <line x1="460" y1="268" x2="560" y2="268" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="464" y="236" width="92" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="510" y="250" class="msg-label" fill="#4f5d75" text-anchor="middle">아니오 · 종료</text>
+      <!-- F → G -->
+      <line x1="320" y1="416" x2="320" y2="456" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <!-- G → H -->
+      <line x1="320" y1="520" x2="320" y2="560" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <!-- H → D loop-back (left side) -->
+      <path d="M 180,592 H 128 Q 120,592 120,584 V 276 Q 120,268 128,268 H 176"
+            fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="28" y="420" width="84" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="70" y="434" class="msg-label" fill="#4f5d75" text-anchor="middle">다음 날로</text>
+      <!-- I → J -->
+      <line x1="700" y1="300" x2="700" y2="352" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- ═══ Nodes ═══ -->
+      <!-- A: start oval -->
+      <rect x="180" y="40" width="280" height="48" rx="24" fill="#f5f5f5"/>
+      <rect x="180" y="40" width="280" height="48" rx="24" fill="rgba(79,93,117,0.10)" stroke="#7a8399" stroke-width="1"/>
+      <text x="320" y="60" class="node-name" fill="#2d3142" text-anchor="middle">recalc_from_date</text>
+      <text x="320" y="78" class="sublabel" fill="#4f5d75" text-anchor="middle">POST /recalc {from_date}</text>
+
+      <!-- BC: clear + seed -->
+      <rect x="180" y="128" width="280" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="180" y="128" width="280" height="64" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="320" y="152" class="node-name" fill="#2d3142" text-anchor="middle">경계일 이후 원장 삭제 · MMR 시드</text>
+      <text x="320" y="176" class="sublabel" fill="#4f5d75" text-anchor="middle">fetch_end_of_day_mmr_before(경계일)</text>
+
+      <!-- D: decision diamond -->
+      <polygon points="320,224 460,268 320,312 180,268" fill="#f5f5f5"/>
+      <polygon points="320,224 460,268 320,312 180,268" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="320" y="264" class="node-name" fill="#2d3142" text-anchor="middle">다음 스포츠데이가</text>
+      <text x="320" y="284" class="sublabel" fill="#4f5d75" text-anchor="middle">≤ 오늘(KST)?</text>
+
+      <!-- F: settle matches (focal 1) -->
+      <rect x="180" y="352" width="280" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="180" y="352" width="280" height="64" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+      <text x="320" y="376" class="node-name" fill="#2d3142" text-anchor="middle">그날 매치를 제로섬 정산</text>
+      <text x="320" y="400" class="sublabel" fill="#4f5d75" text-anchor="middle">settlement.py → match_mmr_delta</text>
+
+      <!-- G: attendance barrier (focal 2) -->
+      <rect x="180" y="456" width="280" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="180" y="456" width="280" height="64" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+      <text x="320" y="480" class="node-name" fill="#2d3142" text-anchor="middle">종료 시점 출석 패스</text>
+      <text x="320" y="504" class="sublabel" fill="#4f5d75" text-anchor="middle">attendance_pass.py → sportsday_mmr</text>
+
+      <!-- H: feed forward -->
+      <rect x="180" y="560" width="280" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="180" y="560" width="280" height="64" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="320" y="584" class="node-name" fill="#2d3142" text-anchor="middle">end_of_day_mmr 피드포워드</text>
+      <text x="320" y="608" class="sublabel" fill="#4f5d75" text-anchor="middle">다음 날 첫 매치의 시작 MMR</text>
+
+      <!-- I: aggregate + redis rebuild (store treatment) -->
+      <rect x="560" y="236" width="280" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="560" y="236" width="280" height="64" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <text x="700" y="260" class="node-name" fill="#2d3142" text-anchor="middle">게임 포인트 집계 · Redis 재구축</text>
+      <text x="700" y="284" class="sublabel" fill="#4f5d75" text-anchor="middle">leaderboard:* · leaguelevel:*</text>
+
+      <!-- J: end oval -->
+      <rect x="560" y="352" width="280" height="48" rx="24" fill="#f5f5f5"/>
+      <rect x="560" y="352" width="280" height="48" rx="24" fill="rgba(79,93,117,0.10)" stroke="#7a8399" stroke-width="1"/>
+      <text x="700" y="381" class="node-name" fill="#2d3142" text-anchor="middle">200 OK</text>
+
+      <!-- ═══ Editorial aside ═══ -->
+      <text x="560" y="488" class="aside" fill="#4f5d75">출석은 표시용 오버레이가 아니다.</text>
+      <text x="560" y="512" class="aside" fill="#4f5d75">다음 날의 첫 매치는 이 값에서 시작하므로</text>
+      <text x="560" y="536" class="aside" fill="#4f5d75">리플레이는 매치 순이 아니라 하루 순이어야 한다.</text>
+      <text x="560" y="576" class="sublabel" fill="#4f5d75">MMR(t) = 500 + Σ match_delta + Σ attendance_delta</text>
+      <text x="560" y="596" class="sublabel" fill="#4f5d75">기본 500 · 최소 0 · 시즌 리셋 없음</text>
+
+      <!-- ═══ Legend ═══ -->
+      <line x1="40" y1="672" x2="920" y2="672" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <text x="40" y="700" class="legend-label" fill="#4f5d75">LEGEND</text>
+      <rect x="132" y="690" width="40" height="14" rx="7" fill="rgba(79,93,117,0.10)" stroke="#7a8399" stroke-width="1"/>
+      <text x="184" y="700" class="sublabel" fill="#4f5d75">시작 / 끝</text>
+      <rect x="288" y="690" width="40" height="14" rx="3" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="340" y="700" class="sublabel" fill="#4f5d75">엔진 단계</text>
+      <rect x="444" y="690" width="40" height="14" rx="3" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+      <text x="496" y="700" class="sublabel" fill="#4f5d75">순수 함수 모듈</text>
+      <rect x="628" y="690" width="40" height="14" rx="3" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <text x="680" y="700" class="sublabel" fill="#4f5d75">저장소 쓰기</text>
+      <line x1="800" y1="697" x2="840" y2="697" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <text x="852" y="700" class="sublabel" fill="#4f5d75">흐름</text>
+    </svg>
+  </div>
+</body>
+</html>

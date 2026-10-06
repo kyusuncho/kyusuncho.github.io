@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>흐름 A — 기동 시 정합성 검증과 자가 치유</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:  #f5f5f5;
+      --color-ink:    #2d3142;
+      --color-muted:  #4f5d75;
+      --color-accent: #eb6c36;
+      --font-sans:  'Geist', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', system-ui, sans-serif;
+      --font-serif: 'Instrument Serif', 'Nanum Myeongjo', serif;
+      --font-mono:  'Geist Mono', 'Apple SD Gothic Neo', 'Noto Sans KR', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; min-width: 760px; display: block; }
+    svg .op-tag, svg .legend-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.12em; }
+    svg .node-name { font-family: var(--font-sans); font-size: 16px; font-weight: 600; }
+    svg .sublabel { font-family: var(--font-mono); font-size: 12px; }
+    svg .msg-label, svg .guard { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.02em; }
+    /* Embed mode: the blog iframes this file with #embed to hide the page chrome (CSS-only, no JS). */
+    body:has(.frame:target) { padding: 0; }
+    .frame:target { max-width: none; }
+    .frame:target .eyebrow, .frame:target h1 { display: none; }
+    .frame:target svg { min-width: 0; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div class="frame" id="embed">
+    <p class="eyebrow">Sequence · RV Badminton PointCalculator</p>
+    <h1>흐름 A — 기동 시 정합성 검증과 자가 치유</h1>
+
+    <svg viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="rv-startup-title rv-startup-desc">
+      <title id="rv-startup-title">흐름 A — 기동 시 정합성 검증과 자가 치유</title>
+      <desc id="rv-startup-desc">Spring Boot가 기동하며 PointCalculator의 validate_startup을 호출하면, PointCalculator는 PostgreSQL 매치를 스캔해 자신의 DuckDB 이력과 비교하고, 불일치 시 가장 이른 분기 시점부터 자동 재연한 뒤 Redis를 재구축해 응답한다.</desc>
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+        <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+      <!-- ═══ Lifelines ═══ -->
+      <line x1="120" y1="104" x2="120" y2="496" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="360" y1="104" x2="360" y2="496" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="600" y1="104" x2="600" y2="496" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="840" y1="104" x2="840" y2="496" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="3,3"/>
+
+      <!-- ═══ Alt fragment frame (before messages, after lifelines) ═══ -->
+      <rect x="88" y="216" width="784" height="248" rx="4" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+      <rect x="88" y="216" width="40" height="16" rx="2" fill="#f5f5f5" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+      <text x="108" y="228" class="op-tag" fill="#4f5d75" text-anchor="middle">ALT</text>
+      <text x="100" y="248" class="guard" fill="#4f5d75">[상태 불일치 → 자가 치유]</text>
+      <line x1="96" y1="384" x2="864" y2="384" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="100" y="408" class="guard" fill="#4f5d75">[상태 일치]</text>
+
+      <!-- ═══ Activation bars ═══ -->
+      <rect x="116" y="140" width="8" height="324" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+      <rect x="356" y="144" width="8" height="316" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+      <rect x="596" y="180" width="8" height="12" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+      <rect x="836" y="324" width="8" height="12" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+      <rect x="836" y="428" width="8" height="12" fill="rgba(45,49,66,0.06)" stroke="#4f5d75" stroke-width="0.8"/>
+
+      <!-- ═══ Messages ═══ -->
+      <!-- m1: SB → PC : GET /validate_startup -->
+      <line x1="124" y1="144" x2="356" y2="144" stroke="#2e5aa8" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+      <rect x="160" y="116" width="160" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="240" y="130" class="msg-label" fill="#2e5aa8" text-anchor="middle">GET /validate_startup</text>
+
+      <!-- m2: PC → PG : scan matches -->
+      <line x1="364" y1="184" x2="596" y2="184" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="432" y="156" width="96" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="480" y="170" class="msg-label" fill="#4f5d75" text-anchor="middle">매치 로우 스캔</text>
+
+      <!-- m3: PC self : recalc_from (headline, accent) -->
+      <path d="M 364,272 H 396 Q 404,272 404,280 V 288 Q 404,296 396,296 H 368"
+            fill="none" stroke="#eb6c36" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+      <text x="416" y="289" class="msg-label" fill="#eb6c36">recalc_from() 재연</text>
+
+      <!-- m4: PC → RD : rebuild ZSET/HASH -->
+      <line x1="364" y1="328" x2="836" y2="328" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="416" y="300" width="128" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="480" y="314" class="msg-label" fill="#4f5d75" text-anchor="middle">ZSET · HASH 재구축</text>
+
+      <!-- m5: PC --> SB : recalculated (return) -->
+      <line x1="356" y1="360" x2="124" y2="360" stroke="#4f5d75" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+      <rect x="164" y="332" width="152" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="240" y="346" class="msg-label" fill="#4f5d75" text-anchor="middle">status: recalculated</text>
+
+      <!-- m6: PC → RD : rebuild with member filter -->
+      <line x1="364" y1="432" x2="836" y2="432" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="416" y="404" width="128" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="480" y="418" class="msg-label" fill="#4f5d75" text-anchor="middle">멤버 필터 반영 재구축</text>
+
+      <!-- m7: PC --> SB : consistent (return) -->
+      <line x1="356" y1="456" x2="124" y2="456" stroke="#4f5d75" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+      <rect x="172" y="428" width="136" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="240" y="442" class="msg-label" fill="#4f5d75" text-anchor="middle">status: consistent</text>
+
+      <!-- ═══ Actors ═══ -->
+      <rect x="40" y="48" width="160" height="56" rx="6" fill="#f5f5f5"/>
+      <rect x="40" y="48" width="160" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="120" y="74" class="node-name" fill="#2d3142" text-anchor="middle">Spring Boot</text>
+      <text x="120" y="94" class="sublabel" fill="#4f5d75" text-anchor="middle">backend</text>
+
+      <rect x="280" y="48" width="160" height="56" rx="6" fill="#f5f5f5"/>
+      <rect x="280" y="48" width="160" height="56" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+      <text x="360" y="74" class="node-name" fill="#2d3142" text-anchor="middle">PointCalculator</text>
+      <text x="360" y="94" class="sublabel" fill="#4f5d75" text-anchor="middle">fastapi</text>
+
+      <rect x="520" y="48" width="160" height="56" rx="6" fill="#f5f5f5"/>
+      <rect x="520" y="48" width="160" height="56" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <text x="600" y="74" class="node-name" fill="#2d3142" text-anchor="middle">PostgreSQL</text>
+      <text x="600" y="94" class="sublabel" fill="#4f5d75" text-anchor="middle">원본 저장소</text>
+
+      <rect x="760" y="48" width="160" height="56" rx="6" fill="#f5f5f5"/>
+      <rect x="760" y="48" width="160" height="56" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <text x="840" y="74" class="node-name" fill="#2d3142" text-anchor="middle">Redis</text>
+      <text x="840" y="94" class="sublabel" fill="#4f5d75" text-anchor="middle">결과 저장소</text>
+
+      <!-- ═══ Legend ═══ -->
+      <line x1="40" y1="536" x2="920" y2="536" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <text x="40" y="564" class="legend-label" fill="#4f5d75">LEGEND</text>
+      <line x1="140" y1="559" x2="180" y2="559" stroke="#2e5aa8" stroke-width="1.2"/>
+      <text x="192" y="564" class="sublabel" fill="#4f5d75">HTTP 호출</text>
+      <line x1="320" y1="559" x2="360" y2="559" stroke="#4f5d75" stroke-width="1.2"/>
+      <text x="372" y="564" class="sublabel" fill="#4f5d75">내부 호출</text>
+      <line x1="500" y1="559" x2="540" y2="559" stroke="#4f5d75" stroke-width="1" stroke-dasharray="5,4"/>
+      <text x="552" y="564" class="sublabel" fill="#4f5d75">응답</text>
+      <line x1="640" y1="559" x2="680" y2="559" stroke="#eb6c36" stroke-width="1.2"/>
+      <text x="692" y="564" class="sublabel" fill="#4f5d75">자가 치유</text>
+    </svg>
+  </div>
+</body>
+</html>

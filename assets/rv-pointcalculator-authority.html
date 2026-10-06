@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>권한 모델 — 세 저장소, 겹치지 않는 소유권</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:  #f5f5f5;
+      --color-ink:    #2d3142;
+      --color-muted:  #4f5d75;
+      --color-accent: #eb6c36;
+      --font-sans:  'Geist', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', system-ui, sans-serif;
+      --font-serif: 'Instrument Serif', 'Nanum Myeongjo', serif;
+      --font-mono:  'Geist Mono', 'Apple SD Gothic Neo', 'Noto Sans KR', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; min-width: 760px; display: block; }
+    svg .zone-label, svg .tag, svg .legend-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.14em; }
+    svg .node-name { font-family: var(--font-sans); font-size: 16px; font-weight: 600; }
+    svg .sublabel { font-family: var(--font-mono); font-size: 12px; }
+    svg .arrow-label { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.02em; }
+    /* Embed mode: the blog iframes this file with #embed to hide the page chrome (CSS-only, no JS). */
+    body:has(.frame:target) { padding: 0; }
+    .frame:target { max-width: none; }
+    .frame:target .eyebrow, .frame:target h1 { display: none; }
+    .frame:target svg { min-width: 0; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div class="frame" id="embed">
+    <p class="eyebrow">Architecture · RV Badminton PointCalculator</p>
+    <h1>권한 모델 — 세 저장소, 겹치지 않는 소유권</h1>
+
+    <svg viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="rv-authority-title rv-authority-desc">
+      <title id="rv-authority-title">권한 모델 — 세 저장소, 겹치지 않는 소유권</title>
+      <desc id="rv-authority-desc">Spring Boot는 PostgreSQL에 원본 데이터를 쓰고 Redis에 가중치 설정을 쓴다. PointCalculator는 원본과 설정을 읽기 전용으로 가져와 DuckDB에 파생 상태를, Redis에 리더보드 결과를 쓰고, Spring Boot는 그 결과를 읽기만 한다.</desc>
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+        <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+      <!-- ═══ Zones (painted first) ═══ -->
+      <rect x="372" y="96" width="216" height="408" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <rect x="384" y="100" width="88" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="428" y="109" class="zone-label" fill="rgba(45,49,66,0.40)" text-anchor="middle">DATABASE LAYER</text>
+
+      <rect x="664" y="96" width="256" height="408" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <rect x="676" y="100" width="128" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="740" y="109" class="zone-label" fill="rgba(45,49,66,0.40)" text-anchor="middle">POINTCALCULATOR SVC</text>
+
+      <!-- ═══ Arrows (before nodes) ═══ -->
+      <!-- E1: Spring Boot → PostgreSQL (write) -->
+      <path d="M 248,288 H 312 Q 320,288 320,280 V 188 Q 320,180 328,180 H 396"
+            fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="244" y="224" width="64" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="276" y="238" class="arrow-label" fill="#4f5d75" text-anchor="middle">원본 쓰기</text>
+
+      <!-- E2: Spring Boot → Redis (write config) -->
+      <path d="M 248,308 H 336 Q 344,308 344,316 V 404 Q 344,412 352,412 H 396"
+            fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="356" y="352" width="64" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="388" y="366" class="arrow-label" fill="#4f5d75" text-anchor="middle">설정 쓰기</text>
+
+      <!-- E3: Redis → Spring Boot (read results, dashed) -->
+      <path d="M 396,440 H 304 Q 296,440 296,432 V 336 Q 296,328 288,328 H 248"
+            fill="none" stroke="#7a8399" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+      <rect x="220" y="384" width="64" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="252" y="398" class="arrow-label" fill="#7a8399" text-anchor="middle">결과 읽기</text>
+
+      <!-- E4: PointCalculator → PostgreSQL (read-only scan, dashed) -->
+      <line x1="688" y1="160" x2="564" y2="160" stroke="#7a8399" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+      <rect x="594" y="132" width="64" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="626" y="146" class="arrow-label" fill="#7a8399" text-anchor="middle">원본 읽기</text>
+
+      <!-- E5: PointCalculator → Redis (read config, dashed) -->
+      <path d="M 688,180 H 624 Q 616,180 616,188 V 404 Q 616,412 608,412 H 564"
+            fill="none" stroke="#7a8399" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+      <rect x="540" y="272" width="64" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="572" y="286" class="arrow-label" fill="#7a8399" text-anchor="middle">설정 읽기</text>
+
+      <!-- E6: PointCalculator → Redis (write leaderboard) -->
+      <path d="M 688,200 H 652 Q 644,200 644,208 V 432 Q 644,440 636,440 H 564"
+            fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="656" y="336" width="64" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="688" y="350" class="arrow-label" fill="#4f5d75" text-anchor="middle">결과 쓰기</text>
+
+      <!-- E7: PointCalculator → DuckDB (write derived state) -->
+      <line x1="792" y1="224" x2="792" y2="376" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="804" y="292" width="96" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="852" y="306" class="arrow-label" fill="#4f5d75" text-anchor="middle">파생 상태 기록</text>
+
+      <!-- ═══ Nodes ═══ -->
+      <!-- Spring Boot API -->
+      <rect x="40" y="264" width="208" height="88" rx="6" fill="#f5f5f5"/>
+      <rect x="40" y="264" width="208" height="88" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="52" y="274" width="32" height="16" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="68" y="285" class="tag" fill="rgba(45,49,66,0.80)" text-anchor="middle">API</text>
+      <text x="144" y="316" class="node-name" fill="#2d3142" text-anchor="middle">Spring Boot API</text>
+      <text x="144" y="338" class="sublabel" fill="#4f5d75" text-anchor="middle">원본 데이터의 권위자</text>
+
+      <!-- PostgreSQL -->
+      <rect x="396" y="136" width="168" height="88" rx="6" fill="#f5f5f5"/>
+      <rect x="396" y="136" width="168" height="88" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <rect x="408" y="146" width="32" height="16" rx="2" fill="transparent" stroke="rgba(79,93,117,0.40)" stroke-width="0.8"/>
+      <text x="424" y="157" class="tag" fill="rgba(79,93,117,0.90)" text-anchor="middle">SQL</text>
+      <text x="480" y="188" class="node-name" fill="#2d3142" text-anchor="middle">PostgreSQL 17</text>
+      <text x="480" y="210" class="sublabel" fill="#4f5d75" text-anchor="middle">원본 매치 · 멤버</text>
+
+      <!-- Redis -->
+      <rect x="396" y="384" width="168" height="88" rx="6" fill="#f5f5f5"/>
+      <rect x="396" y="384" width="168" height="88" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <rect x="408" y="394" width="32" height="16" rx="2" fill="transparent" stroke="rgba(79,93,117,0.40)" stroke-width="0.8"/>
+      <text x="424" y="405" class="tag" fill="rgba(79,93,117,0.90)" text-anchor="middle">KV</text>
+      <text x="480" y="436" class="node-name" fill="#2d3142" text-anchor="middle">Redis 7</text>
+      <text x="480" y="458" class="sublabel" fill="#4f5d75" text-anchor="middle">결과 · 설정 교환소</text>
+
+      <!-- PointCalculator (focal) -->
+      <rect x="688" y="136" width="208" height="88" rx="6" fill="#f5f5f5"/>
+      <rect x="688" y="136" width="208" height="88" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+      <rect x="700" y="146" width="32" height="16" rx="2" fill="transparent" stroke="rgba(235,108,54,0.50)" stroke-width="0.8"/>
+      <text x="716" y="157" class="tag" fill="rgba(235,108,54,0.90)" text-anchor="middle">SVC</text>
+      <text x="792" y="188" class="node-name" fill="#2d3142" text-anchor="middle">PointCalculator</text>
+      <text x="792" y="210" class="sublabel" fill="#4f5d75" text-anchor="middle">fastapi · python</text>
+
+      <!-- DuckDB -->
+      <rect x="688" y="384" width="208" height="88" rx="6" fill="#f5f5f5"/>
+      <rect x="688" y="384" width="208" height="88" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <rect x="700" y="394" width="36" height="16" rx="2" fill="transparent" stroke="rgba(79,93,117,0.40)" stroke-width="0.8"/>
+      <text x="718" y="405" class="tag" fill="rgba(79,93,117,0.90)" text-anchor="middle">FILE</text>
+      <text x="792" y="436" class="node-name" fill="#2d3142" text-anchor="middle">DuckDB 캐시</text>
+      <text x="792" y="458" class="sublabel" fill="#4f5d75" text-anchor="middle">재연 가능한 파생 상태</text>
+
+      <!-- ═══ Legend ═══ -->
+      <line x1="40" y1="548" x2="920" y2="548" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <text x="40" y="576" class="legend-label" fill="#4f5d75">LEGEND</text>
+      <line x1="140" y1="571" x2="180" y2="571" stroke="#4f5d75" stroke-width="1.2"/>
+      <text x="192" y="576" class="sublabel" fill="#4f5d75">쓰기 권한</text>
+      <line x1="320" y1="571" x2="360" y2="571" stroke="#7a8399" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="372" y="576" class="sublabel" fill="#4f5d75">읽기 전용</text>
+      <rect x="500" y="564" width="16" height="12" rx="2" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="528" y="576" class="sublabel" fill="#4f5d75">이 글의 주인공</text>
+    </svg>
+  </div>
+</body>
+</html>
