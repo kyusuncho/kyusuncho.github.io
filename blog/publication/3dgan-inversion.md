@@ -6,7 +6,7 @@ card_title: 3D GAN Inversion with Pose Optimization
 card_eyebrow: WACV 2023
 card_excerpt: Infers camera viewpoint and latent code together, so a single image can be reconstructed and edited with multi-view consistency.
 card_video: /assets/images/tim_cook.mp4
-card_tags: 3D, GAN-inversion, NeRF, editing
+card_tags: 3D, GAN-inversion, NeRF, pose-optimization, editing
 ---
 
 # 3D GAN Inversion with Pose Optimization
@@ -16,8 +16,6 @@ card_tags: 3D, GAN-inversion, NeRF, editing
 Jaehoon Ko\*, **Kyusun Cho**\*, Daewon Choi, Kwangrok Ryoo, [Seungryong Kim](https://cvlab.korea.ac.kr/members/faculty)
 
 *The IEEE/CVF Winter Conference on Applications of Computer Vision (WACV) 2023*
-
-<p class="pub-tags"><span class="pub-tag">#3D</span> <span class="pub-tag">#GAN-inversion</span> <span class="pub-tag">#NeRF</span> <span class="pub-tag">#pose-optimization</span> <span class="pub-tag">#editing</span></p>
 
 ## Abstract
 

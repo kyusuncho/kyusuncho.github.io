@@ -7,7 +7,7 @@ card_eyebrow: arXiv 2023
 card_excerpt: An auto-encoder that disentangles shape, appearance, and camera pose from a single image, then renders them back through a generative NeRF.
 card_image: /assets/images/ae-nerf.png
 card_alt: AE-NeRF teaser
-card_tags: 3D, NeRF, auto-encoder, disentanglement
+card_tags: 3D, NeRF, auto-encoder, disentanglement, object-manipulation
 ---
 
 # AE-NeRF: Auto-Encoding Neural Radiance Fields for 3D-Aware Object Manipulation
@@ -17,8 +17,6 @@ card_tags: 3D, NeRF, auto-encoder, disentanglement
 Mira Kim\*, Jaehoon Ko\*, **Kyusun Cho**, Junmyeong Choi, Daewon Choi, [Seungryong Kim](https://cvlab.korea.ac.kr/members/faculty)
 
 *arXiv Preprint, 2023*
-
-<p class="pub-tags"><span class="pub-tag">#3D</span> <span class="pub-tag">#NeRF</span> <span class="pub-tag">#auto-encoder</span> <span class="pub-tag">#disentanglement</span> <span class="pub-tag">#object-manipulation</span></p>
 
 ## Abstract
 

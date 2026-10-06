@@ -7,7 +7,7 @@ card_eyebrow: ICCV 2025 Workshop
 card_excerpt: Drives a personalized 3D generative prior with an audio-guided attention U-Net, so facial geometry stays plausible even under extreme head poses.
 card_image: /assets/images/talk3d_teaser.png
 card_alt: Talk3D teaser
-card_tags: 3D, talking-portrait, NeRF, generative-prior
+card_tags: 3D, talking-portrait, NeRF, generative-prior, audio-driven
 ---
 
 # Talk3D: High-Fidelity Talking Portrait Synthesis via Personalized 3D Generative Prior
@@ -17,8 +17,6 @@ card_tags: 3D, talking-portrait, NeRF, generative-prior
 Jaehoon Ko\*, **Kyusun Cho**\*, Joungbin Lee, Heeji Yoon, Sangmin Lee, Sangjun Ahn, [Seungryong Kim](https://cvlab.korea.ac.kr/members/faculty)
 
 *ICCV 2025 Workshop*
-
-<p class="pub-tags"><span class="pub-tag">#3D</span> <span class="pub-tag">#talking-portrait</span> <span class="pub-tag">#NeRF</span> <span class="pub-tag">#generative-prior</span> <span class="pub-tag">#audio-driven</span></p>
 
 ## Abstract
 
