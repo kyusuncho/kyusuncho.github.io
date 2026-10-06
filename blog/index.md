@@ -12,7 +12,7 @@ permalink: /
 
 I am an AI Engineer at PlantyNet, working on on-device deepfake detection, LLMOps, and applied AI systems. I completed my M.S. in Computer Science (Artificial Intelligence) at Korea University in February 2025, advised by Professor Seungryong Kim, and received my B.S. in Statistics from Korea University in February 2022.
 
-My research and engineering interests include 3D computer vision, 3D synthesis, multi-modal AI, and practical systems that bring model capabilities into real products. 
+My research and engineering interests include 3D computer vision, 3D synthesis, multi-modal AI, and practical systems that bring model capabilities into real products and working systems.  
 
 As an engineer, I always have a question in mind: why a system behaves the way it does, how an idea can become something useful, and what can be improved next. This blog is where I write through those questions, sharing notes, write-ups, and reflections from the projects I work on and the experiences I gather along the way.
 
@@ -49,7 +49,7 @@ As an engineer, I always have a question in mind: why a system behaves the way i
 
 <div class="cv-entry">
   <div class="cv-entry-head">
-    <span class="cv-org">PlantyNet</span>
+    <span class="cv-org"><a href="{% link work/plantynet.md %}">PlantyNet</a></span>
     <span class="cv-date cv-date--current">2025.02 – current</span>
   </div>
   <div class="cv-role">AI Engineer · Seongnam, South Korea</div>
@@ -58,7 +58,7 @@ As an engineer, I always have a question in mind: why a system behaves the way i
 
 <div class="cv-entry">
   <div class="cv-entry-head">
-    <span class="cv-org">Queen Mary University of London</span>
+    <span class="cv-org"><a href="{% link work/qmul.md %}">Queen Mary University of London</a></span>
     <span class="cv-date">2024.08 – 2024.11</span>
   </div>
   <div class="cv-role">Visiting Researcher · London, United Kingdom</div>
