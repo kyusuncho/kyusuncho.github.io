@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>시스템 전체 흐름 — 좁혀 가는 단계들의 사슬</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:  #f5f5f5;
+      --color-ink:    #2d3142;
+      --color-muted:  #4f5d75;
+      --color-accent: #eb6c36;
+      --font-sans:  'Geist', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', system-ui, sans-serif;
+      --font-serif: 'Instrument Serif', 'Nanum Myeongjo', serif;
+      --font-mono:  'Geist Mono', 'Apple SD Gothic Neo', 'Noto Sans KR', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; min-width: 760px; display: block; }
+    svg .zone-label, svg .tag, svg .legend-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.14em; }
+    svg .node-name { font-family: var(--font-sans); font-size: 16px; font-weight: 600; }
+    svg .sublabel { font-family: var(--font-mono); font-size: 12px; }
+    svg .arrow-label { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.02em; }
+    svg .aside { font-family: var(--font-serif); font-style: italic; font-size: 15px; }
+    /* Embed mode: the blog iframes this file with #embed to hide the page chrome (CSS-only, no JS). */
+    body:has(.frame:target) { padding: 0; }
+    .frame:target { max-width: none; }
+    .frame:target .eyebrow, .frame:target h1 { display: none; }
+    .frame:target svg { min-width: 0; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div class="frame" id="embed">
+    <p class="eyebrow">Architecture · 퇴근하구 (AfterWork)</p>
+    <h1>시스템 전체 흐름 — 좁혀 가는 단계들의 사슬</h1>
+
+    <svg viewBox="0 0 960 700" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="aw-sysflow-title aw-sysflow-desc">
+      <title id="aw-sysflow-title">시스템 전체 흐름 — 오프라인 파이프라인과 온라인 추천 경로</title>
+      <desc id="aw-sysflow-desc">공공 소스에서 야간 배치로 수집·임베딩·분류한 결과가 PostgreSQL 스냅샷에 적재되고, 온라인 경로는 그 스냅샷만 읽어 하드 게이트, 하이브리드 검색, 결정론적 랭킹, 제한형 LLM 큐레이션을 거쳐 지도 UI에 도달한다. 상위 단계가 배제한 것을 하위 단계가 되살릴 수 없다.</desc>
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+      <!-- ═══ Zones (painted first) ═══ -->
+      <rect x="32" y="88" width="256" height="328" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <rect x="48" y="92" width="184" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="140" y="101" class="zone-label" fill="rgba(45,49,66,0.40)" text-anchor="middle">OFFLINE · 야간 배치 03:00 KST</text>
+
+      <rect x="648" y="88" width="280" height="480" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <rect x="664" y="92" width="176" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="752" y="101" class="zone-label" fill="rgba(45,49,66,0.40)" text-anchor="middle">ONLINE · 추천 경로 (요청당)</text>
+
+      <!-- ═══ Arrows (before nodes) ═══ -->
+      <!-- offline column -->
+      <line x1="160" y1="200" x2="160" y2="224" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line x1="160" y1="296" x2="160" y2="320" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <!-- embed/classify → DB -->
+      <line x1="264" y1="356" x2="384" y2="356" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="292" y="328" width="64" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="324" y="342" class="arrow-label" fill="#4f5d75" text-anchor="middle">야간 적재</text>
+      <!-- DB → hard gate -->
+      <path d="M 576,308 H 616 Q 624,308 624,300 V 168 Q 624,160 632,160 H 672"
+            fill="none" stroke="#eb6c36" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+      <rect x="548" y="224" width="64" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="580" y="238" class="arrow-label" fill="#eb6c36" text-anchor="middle">읽기 전용</text>
+      <!-- online column -->
+      <line x1="788" y1="192" x2="788" y2="216" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line x1="788" y1="280" x2="788" y2="304" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line x1="788" y1="368" x2="788" y2="392" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line x1="788" y1="456" x2="788" y2="480" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- ═══ Nodes ═══ -->
+      <!-- 공공 소스 (external) -->
+      <rect x="56" y="128" width="208" height="72" rx="6" fill="#f5f5f5"/>
+      <rect x="56" y="128" width="208" height="72" rx="6" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+      <rect x="68" y="138" width="32" height="16" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="84" y="149" class="tag" fill="rgba(45,49,66,0.80)" text-anchor="middle">SRC</text>
+      <text x="160" y="172" class="node-name" fill="#2d3142" text-anchor="middle">공공 강좌 소스</text>
+      <text x="160" y="192" class="sublabel" fill="#4f5d75" text-anchor="middle">data.go.kr · KSPO · 서울</text>
+
+      <!-- 수집·정규화 -->
+      <rect x="56" y="224" width="208" height="72" rx="6" fill="#f5f5f5"/>
+      <rect x="56" y="224" width="208" height="72" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="68" y="234" width="32" height="16" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="84" y="245" class="tag" fill="rgba(45,49,66,0.80)" text-anchor="middle">ETL</text>
+      <text x="160" y="268" class="node-name" fill="#2d3142" text-anchor="middle">수집 · 정규화</text>
+      <text x="160" y="288" class="sublabel" fill="#4f5d75" text-anchor="middle">airflow · 결정론적</text>
+
+      <!-- 임베딩·분류 -->
+      <rect x="56" y="320" width="208" height="72" rx="6" fill="#f5f5f5"/>
+      <rect x="56" y="320" width="208" height="72" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="68" y="330" width="32" height="16" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="84" y="341" class="tag" fill="rgba(45,49,66,0.80)" text-anchor="middle">ML</text>
+      <text x="160" y="364" class="node-name" fill="#2d3142" text-anchor="middle">임베딩 · 제로샷 분류</text>
+      <text x="160" y="384" class="sublabel" fill="#4f5d75" text-anchor="middle">upstage 1024d · argmax</text>
+
+      <!-- PostgreSQL (focal hinge) -->
+      <rect x="384" y="280" width="192" height="96" rx="6" fill="#f5f5f5"/>
+      <rect x="384" y="280" width="192" height="96" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+      <rect x="396" y="290" width="28" height="16" rx="2" fill="transparent" stroke="rgba(235,108,54,0.50)" stroke-width="0.8"/>
+      <text x="410" y="301" class="tag" fill="rgba(235,108,54,0.90)" text-anchor="middle">DB</text>
+      <text x="480" y="326" class="node-name" fill="#2d3142" text-anchor="middle">PostgreSQL</text>
+      <text x="480" y="346" class="sublabel" fill="#4f5d75" text-anchor="middle">PostGIS · pgvector</text>
+      <text x="480" y="364" class="sublabel" fill="#4f5d75" text-anchor="middle">매일 밤 새 스냅샷</text>
+
+      <!-- 하드 자격 필터 -->
+      <rect x="672" y="128" width="232" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="672" y="128" width="232" height="64" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="684" y="138" width="32" height="16" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="700" y="149" class="tag" fill="rgba(45,49,66,0.80)" text-anchor="middle">SQL</text>
+      <text x="788" y="164" class="node-name" fill="#2d3142" text-anchor="middle">하드 자격 필터</text>
+      <text x="788" y="184" class="sublabel" fill="#4f5d75" text-anchor="middle">WHERE · 만료·카테고리·예산</text>
+
+      <!-- 하이브리드 검색 -->
+      <rect x="672" y="216" width="232" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="672" y="216" width="232" height="64" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="684" y="226" width="32" height="16" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="700" y="237" class="tag" fill="rgba(45,49,66,0.80)" text-anchor="middle">GEO</text>
+      <text x="788" y="252" class="node-name" fill="#2d3142" text-anchor="middle">하이브리드 검색</text>
+      <text x="788" y="272" class="sublabel" fill="#4f5d75" text-anchor="middle">PostGIS 타원 · 코사인</text>
+
+      <!-- 결정론적 랭킹 -->
+      <rect x="672" y="304" width="232" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="672" y="304" width="232" height="64" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="684" y="314" width="28" height="16" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="698" y="325" class="tag" fill="rgba(45,49,66,0.80)" text-anchor="middle">TS</text>
+      <text x="788" y="340" class="node-name" fill="#2d3142" text-anchor="middle">결정론적 랭킹</text>
+      <text x="788" y="360" class="sublabel" fill="#4f5d75" text-anchor="middle">버전 고정 가중치 · 합=1.0</text>
+
+      <!-- 제한형 LLM 큐레이션 -->
+      <rect x="672" y="392" width="232" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="672" y="392" width="232" height="64" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="684" y="402" width="32" height="16" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="700" y="413" class="tag" fill="rgba(45,49,66,0.80)" text-anchor="middle">LLM</text>
+      <text x="788" y="428" class="node-name" fill="#2d3142" text-anchor="middle">제한형 LLM 큐레이션</text>
+      <text x="788" y="448" class="sublabel" fill="#4f5d75" text-anchor="middle">vercel ai sdk · 닫힌 스키마</text>
+
+      <!-- 지도 UI -->
+      <rect x="672" y="480" width="232" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="672" y="480" width="232" height="64" rx="6" fill="rgba(79,93,117,0.10)" stroke="#7a8399" stroke-width="1"/>
+      <rect x="684" y="490" width="28" height="16" rx="2" fill="transparent" stroke="rgba(79,93,117,0.40)" stroke-width="0.8"/>
+      <text x="698" y="501" class="tag" fill="rgba(79,93,117,0.90)" text-anchor="middle">UI</text>
+      <text x="788" y="516" class="node-name" fill="#2d3142" text-anchor="middle">지도 UI</text>
+      <text x="788" y="536" class="sublabel" fill="#4f5d75" text-anchor="middle">카카오맵 · 경로 언더레이</text>
+
+      <!-- ═══ Editorial aside ═══ -->
+      <text x="304" y="452" class="aside" fill="#4f5d75" text-anchor="middle">상위 단계가 배제한 것을</text>
+      <text x="304" y="476" class="aside" fill="#4f5d75" text-anchor="middle">하위 단계가 되살릴 수 없다.</text>
+      <text x="304" y="500" class="aside" fill="#4f5d75" text-anchor="middle">런타임은 원본 API를 절대 호출하지 않는다.</text>
+
+      <!-- ═══ Legend ═══ -->
+      <line x1="32" y1="620" x2="928" y2="620" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <text x="32" y="648" class="legend-label" fill="#4f5d75">LEGEND</text>
+      <line x1="132" y1="643" x2="172" y2="643" stroke="#4f5d75" stroke-width="1.2"/>
+      <text x="184" y="648" class="sublabel" fill="#4f5d75">데이터 흐름</text>
+      <line x1="308" y1="643" x2="348" y2="643" stroke="#eb6c36" stroke-width="1.2"/>
+      <text x="360" y="648" class="sublabel" fill="#4f5d75">두 절반이 만나는 유일한 경계</text>
+      <rect x="620" y="636" width="16" height="12" rx="2" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="648" y="648" class="sublabel" fill="#4f5d75">스냅샷 — 오프라인의 산출물, 온라인의 전부</text>
+    </svg>
+  </div>
+</body>
+</html>

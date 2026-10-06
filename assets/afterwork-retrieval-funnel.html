@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>필터 우선 하이브리드 검색 퍼널</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:  #f5f5f5;
+      --color-ink:    #2d3142;
+      --color-muted:  #4f5d75;
+      --color-accent: #eb6c36;
+      --font-sans:  'Geist', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', system-ui, sans-serif;
+      --font-serif: 'Instrument Serif', 'Nanum Myeongjo', serif;
+      --font-mono:  'Geist Mono', 'Apple SD Gothic Neo', 'Noto Sans KR', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; min-width: 760px; display: block; }
+    svg .tag, svg .legend-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.14em; }
+    svg .node-name { font-family: var(--font-sans); font-size: 16px; font-weight: 600; }
+    svg .sublabel { font-family: var(--font-mono); font-size: 12px; }
+    svg .aside { font-family: var(--font-serif); font-style: italic; font-size: 15px; }
+    /* Embed mode: the blog iframes this file with #embed to hide the page chrome (CSS-only, no JS). */
+    body:has(.frame:target) { padding: 0; }
+    .frame:target { max-width: none; }
+    .frame:target .eyebrow, .frame:target h1 { display: none; }
+    .frame:target svg { min-width: 0; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div class="frame" id="embed">
+    <p class="eyebrow">Retrieval · 퇴근하구 (AfterWork)</p>
+    <h1>필터가 랭킹보다 먼저다 — 검색 퍼널</h1>
+
+    <svg viewBox="0 0 960 656" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="aw-funnel-title aw-funnel-desc">
+      <title id="aw-funnel-title">필터 우선 공간·의미 하이브리드 검색 퍼널</title>
+      <desc id="aw-funnel-desc">약 2만 7천 건의 활성 레코드가 카테고리·예산 게이트, 두 초점 타원 게이트, 일정 게이트를 거쳐 좁혀진 뒤에야 의미 유사도와 버전 고정 스코어링이 적용되고, 최종적으로 상위 30개 후보 스냅샷만 LLM에 도달한다. 각 단계는 되돌릴 수 없다.</desc>
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+      <!-- left axis -->
+      <text x="48" y="84" class="sublabel" fill="#7a8399">되돌릴 수 없는 좁힘</text>
+      <line x1="56" y1="96" x2="56" y2="512" stroke="#7a8399" stroke-width="1" marker-end="url(#arrow)"/>
+
+      <!-- ═══ Funnel layers ═══ -->
+      <!-- L1 -->
+      <polygon points="80,96 800,96 740,168 140,168" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+      <text x="440" y="128" class="node-name" fill="#2d3142" text-anchor="middle">활성 · 미만료 레코드</text>
+      <text x="440" y="150" class="sublabel" fill="#4f5d75" text-anchor="middle">약 26,910건 · 매일 밤 갱신</text>
+
+      <!-- L2 -->
+      <polygon points="140,168 740,168 684,240 196,240" fill="rgba(45,49,66,0.04)" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+      <text x="440" y="200" class="node-name" fill="#2d3142" text-anchor="middle">카테고리 · 예산 게이트</text>
+      <text x="440" y="222" class="sublabel" fill="#4f5d75" text-anchor="middle">제로샷 분류 결과가 하드 게이트로</text>
+
+      <!-- L3 -->
+      <polygon points="196,240 684,240 632,312 248,312" fill="rgba(45,49,66,0.05)" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+      <text x="440" y="272" class="node-name" fill="#2d3142" text-anchor="middle">두 초점 타원 게이트</text>
+      <text x="440" y="294" class="sublabel" fill="#4f5d75" text-anchor="middle">detour ≤ budget · 집·회사가 초점</text>
+
+      <!-- L4 -->
+      <polygon points="248,312 632,312 584,384 296,384" fill="rgba(45,49,66,0.06)" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+      <text x="440" y="344" class="node-name" fill="#2d3142" text-anchor="middle">일정 게이트</text>
+      <text x="440" y="366" class="sublabel" fill="#4f5d75" text-anchor="middle">명백 불가만 제외 · unknown은 통과</text>
+
+      <!-- L5 -->
+      <polygon points="296,384 584,384 540,456 340,456" fill="rgba(45,49,66,0.07)" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+      <text x="440" y="416" class="node-name" fill="#2d3142" text-anchor="middle">유사도 · 스코어링</text>
+      <text x="440" y="438" class="sublabel" fill="#4f5d75" text-anchor="middle">필터된 집합 안에서만 계산</text>
+
+      <!-- L6 (focal) -->
+      <polygon points="340,456 540,456 516,528 364,528" fill="rgba(235,108,54,0.10)" stroke="#eb6c36" stroke-width="1.2"/>
+      <text x="440" y="488" class="node-name" fill="#2d3142" text-anchor="middle">상위 30 스냅샷</text>
+      <text x="440" y="510" class="sublabel" fill="#4f5d75" text-anchor="middle">LLM에 도달하는 전부</text>
+
+      <!-- ═══ Right-side enforcement ═══ -->
+      <text x="816" y="132" class="sublabel" fill="#7a8399" text-anchor="start">야간 배치 산출물</text>
+      <text x="768" y="204" class="sublabel" fill="#7a8399" text-anchor="start">SQL WHERE</text>
+      <text x="712" y="276" class="sublabel" fill="#7a8399" text-anchor="start">PostGIS · GiST</text>
+      <text x="660" y="348" class="sublabel" fill="#7a8399" text-anchor="start">3-상태 일정</text>
+      <text x="612" y="420" class="sublabel" fill="#7a8399" text-anchor="start">pgvector · TS 스코어러</text>
+      <text x="568" y="492" class="sublabel" fill="#7a8399" text-anchor="start">닫힌 우주</text>
+
+      <!-- ═══ Editorial aside ═══ -->
+      <text x="440" y="568" class="aside" fill="#4f5d75" text-anchor="middle">유사도는 자격을 되살릴 수 없다 — 근사하게 매칭된 만료 강좌는 여기 없다.</text>
+
+      <!-- ═══ Legend ═══ -->
+      <line x1="40" y1="600" x2="920" y2="600" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <text x="40" y="628" class="legend-label" fill="#4f5d75">LEGEND</text>
+      <rect x="140" y="616" width="16" height="12" rx="2" fill="rgba(45,49,66,0.05)" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+      <text x="168" y="628" class="sublabel" fill="#4f5d75">결정론적 게이트 — 진할수록 좁혀진 집합</text>
+      <rect x="500" y="616" width="16" height="12" rx="2" fill="rgba(235,108,54,0.10)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="528" y="628" class="sublabel" fill="#4f5d75">확률적 시스템에 허락된 유일한 입력</text>
+    </svg>
+  </div>
+</body>
+</html>

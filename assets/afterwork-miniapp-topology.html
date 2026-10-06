@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>하나의 백엔드, 두 개의 클라이언트</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:  #f5f5f5;
+      --color-ink:    #2d3142;
+      --color-muted:  #4f5d75;
+      --color-accent: #eb6c36;
+      --font-sans:  'Geist', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', system-ui, sans-serif;
+      --font-serif: 'Instrument Serif', 'Nanum Myeongjo', serif;
+      --font-mono:  'Geist Mono', 'Apple SD Gothic Neo', 'Noto Sans KR', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; min-width: 760px; display: block; }
+    svg .tag, svg .legend-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.14em; }
+    svg .node-name { font-family: var(--font-sans); font-size: 16px; font-weight: 600; }
+    svg .sublabel { font-family: var(--font-mono); font-size: 12px; }
+    svg .arrow-label { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.02em; }
+    svg .aside { font-family: var(--font-serif); font-style: italic; font-size: 15px; }
+    /* Embed mode: the blog iframes this file with #embed to hide the page chrome (CSS-only, no JS). */
+    body:has(.frame:target) { padding: 0; }
+    .frame:target { max-width: none; }
+    .frame:target .eyebrow, .frame:target h1 { display: none; }
+    .frame:target svg { min-width: 0; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div class="frame" id="embed">
+    <p class="eyebrow">Architecture · 퇴근하구 (AfterWork)</p>
+    <h1>하나의 백엔드, 두 개의 클라이언트</h1>
+
+    <svg viewBox="0 0 960 480" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="aw-miniapp-title aw-miniapp-desc">
+      <title id="aw-miniapp-title">하나의 추천 백엔드에 붙은 두 클라이언트 — 웹과 미니앱</title>
+      <desc id="aw-miniapp-desc">웹 브라우저는 서명된 rollout_sid 쿠키로 Next.js 백엔드를 같은 오리진에서 호출하고, 토스 WebView 안의 미니앱은 쿠키 없이 x-anon-key 헤더를 실어 CORS 허용 목록을 통과해 같은 백엔드를 크로스 오리진으로 호출한다. 두 클라이언트는 같은 API 계약을 공유하지만 신뢰 등급이 다른 파티션 키를 쓴다.</desc>
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+      <!-- ═══ Arrows (before nodes) ═══ -->
+      <!-- 웹 브라우저 → 백엔드 (same-origin, cookie) -->
+      <path d="M 296,144 H 400 Q 408,144 408,152 V 200 Q 408,208 416,208 H 520"
+            fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="420" y="166" width="92" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="466" y="180" class="arrow-label" fill="#4f5d75" text-anchor="middle">rollout_sid</text>
+
+      <!-- 토스 WebView → 백엔드 (cross-origin, anon key) -->
+      <path d="M 296,336 H 400 Q 408,336 408,328 V 272 Q 408,264 416,264 H 520"
+            fill="none" stroke="#eb6c36" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+      <rect x="420" y="290" width="92" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="466" y="304" class="arrow-label" fill="#eb6c36" text-anchor="middle">x-anon-key</text>
+
+      <!-- ═══ Nodes ═══ -->
+      <!-- 웹 브라우저 -->
+      <rect x="80" y="104" width="216" height="80" rx="6" fill="#f5f5f5"/>
+      <rect x="80" y="104" width="216" height="80" rx="6" fill="rgba(79,93,117,0.10)" stroke="#7a8399" stroke-width="1"/>
+      <rect x="92" y="114" width="32" height="16" rx="2" fill="transparent" stroke="rgba(79,93,117,0.40)" stroke-width="0.8"/>
+      <text x="108" y="125" class="tag" fill="rgba(79,93,117,0.90)" text-anchor="middle">WEB</text>
+      <text x="188" y="150" class="node-name" fill="#2d3142" text-anchor="middle">웹 브라우저</text>
+      <text x="188" y="172" class="sublabel" fill="#4f5d75" text-anchor="middle">Next.js 서버 컴포넌트</text>
+
+      <!-- 토스 WebView -->
+      <rect x="80" y="296" width="216" height="80" rx="6" fill="#f5f5f5"/>
+      <rect x="80" y="296" width="216" height="80" rx="6" fill="rgba(79,93,117,0.10)" stroke="#7a8399" stroke-width="1"/>
+      <rect x="92" y="306" width="32" height="16" rx="2" fill="transparent" stroke="rgba(79,93,117,0.40)" stroke-width="0.8"/>
+      <text x="108" y="317" class="tag" fill="rgba(79,93,117,0.90)" text-anchor="middle">APP</text>
+      <text x="188" y="342" class="node-name" fill="#2d3142" text-anchor="middle">토스 WebView · 미니앱</text>
+      <text x="188" y="364" class="sublabel" fill="#4f5d75" text-anchor="middle">Vite CSR · *.tossmini.com</text>
+
+      <!-- Next.js 백엔드 (focal) -->
+      <rect x="520" y="152" width="288" height="176" rx="6" fill="#f5f5f5"/>
+      <rect x="520" y="152" width="288" height="176" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+      <rect x="532" y="162" width="28" height="16" rx="2" fill="transparent" stroke="rgba(235,108,54,0.50)" stroke-width="0.8"/>
+      <text x="546" y="173" class="tag" fill="rgba(235,108,54,0.90)" text-anchor="middle">API</text>
+      <text x="664" y="196" class="node-name" fill="#2d3142" text-anchor="middle">Next.js 백엔드</text>
+      <line x1="544" y1="212" x2="784" y2="212" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+      <text x="664" y="238" class="sublabel" fill="#4f5d75" text-anchor="middle">GET /api/recommend</text>
+      <text x="664" y="264" class="sublabel" fill="#4f5d75" text-anchor="middle">GET /api/course/[id]</text>
+      <text x="664" y="290" class="sublabel" fill="#4f5d75" text-anchor="middle">GET /api/locations</text>
+      <text x="664" y="312" class="sublabel" fill="rgba(235,108,54,0.90)" text-anchor="middle">신뢰 경계는 두 클라이언트가 동일</text>
+
+      <!-- ═══ Editorial aside ═══ -->
+      <text x="884" y="240" class="aside" fill="#4f5d75" text-anchor="middle">같은 API 계약,</text>
+      <text x="884" y="264" class="aside" fill="#4f5d75" text-anchor="middle">다른 신뢰 등급의</text>
+      <text x="884" y="288" class="aside" fill="#4f5d75" text-anchor="middle">파티션 키.</text>
+
+      <!-- ═══ Legend ═══ -->
+      <line x1="40" y1="424" x2="920" y2="424" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <text x="40" y="452" class="legend-label" fill="#4f5d75">LEGEND</text>
+      <line x1="140" y1="447" x2="180" y2="447" stroke="#4f5d75" stroke-width="1.2"/>
+      <text x="192" y="452" class="sublabel" fill="#4f5d75">같은 오리진 · 쿠키 신원</text>
+      <line x1="368" y1="447" x2="408" y2="447" stroke="#eb6c36" stroke-width="1.2"/>
+      <text x="420" y="452" class="sublabel" fill="#4f5d75">크로스 오리진 · 익명 파티션 키</text>
+      <rect x="640" y="440" width="16" height="12" rx="2" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="668" y="452" class="sublabel" fill="#4f5d75">두 클라이언트가 공유하는 유일한 백엔드</text>
+    </svg>
+  </div>
+</body>
+</html>

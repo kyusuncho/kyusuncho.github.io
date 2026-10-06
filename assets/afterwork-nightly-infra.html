@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>야간 배치 인프라 — 홈 서버, Neon, Vercel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:  #f5f5f5;
+      --color-ink:    #2d3142;
+      --color-muted:  #4f5d75;
+      --color-accent: #eb6c36;
+      --font-sans:  'Geist', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', system-ui, sans-serif;
+      --font-serif: 'Instrument Serif', 'Nanum Myeongjo', serif;
+      --font-mono:  'Geist Mono', 'Apple SD Gothic Neo', 'Noto Sans KR', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; min-width: 760px; display: block; }
+    svg .zone-label, svg .tag, svg .legend-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.14em; }
+    svg .node-name { font-family: var(--font-sans); font-size: 16px; font-weight: 600; }
+    svg .sublabel { font-family: var(--font-mono); font-size: 12px; }
+    svg .arrow-label { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.02em; }
+    /* Embed mode: the blog iframes this file with #embed to hide the page chrome (CSS-only, no JS). */
+    body:has(.frame:target) { padding: 0; }
+    .frame:target { max-width: none; }
+    .frame:target .eyebrow, .frame:target h1 { display: none; }
+    .frame:target svg { min-width: 0; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div class="frame" id="embed">
+    <p class="eyebrow">Infra · 퇴근하구 (AfterWork)</p>
+    <h1>야간 배치 인프라 — 예산 0원의 3자 토폴로지</h1>
+
+    <svg viewBox="0 0 960 616" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="aw-infra-title aw-infra-desc">
+      <title id="aw-infra-title">홈 서버 배치, Neon 서빙 DB, Vercel 서빙의 3자 토폴로지</title>
+      <desc id="aw-infra-desc">홈 서버의 Airflow가 공공 소스를 수집하고 캐시 miss만 Upstage로 보내 임베딩한 뒤 Neon에 적재하고 Vercel 빌드를 트리거한다. 빌드는 Neon에서 스냅샷을 뽑아 서버리스 번들에 굽고, embedding_cache는 홈 서버 로컬에 있으며 폐기 가능하다. GitHub Actions는 수동 폴백이다.</desc>
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="arrow-soft" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#7a8399"/></marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+      <!-- ═══ Zones ═══ -->
+      <rect x="32" y="176" width="288" height="328" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <rect x="48" y="180" width="112" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="104" y="189" class="zone-label" fill="rgba(45,49,66,0.40)" text-anchor="middle">홈 서버 · 예산 0원</text>
+
+      <rect x="648" y="176" width="280" height="328" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <rect x="664" y="180" width="112" height="12" rx="2" fill="#f5f5f5"/>
+      <text x="720" y="189" class="zone-label" fill="rgba(45,49,66,0.40)" text-anchor="middle">VERCEL · 서빙</text>
+
+      <!-- ═══ Arrows (before nodes) ═══ -->
+      <!-- 소스 → Airflow -->
+      <line x1="176" y1="112" x2="176" y2="216" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="24" y="148" width="144" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="96" y="162" class="arrow-label" fill="#4f5d75" text-anchor="middle">수집 · 1,000건/일</text>
+
+      <!-- Airflow → Upstage (miss만, dashed) -->
+      <path d="M 240,216 V 152 Q 240,144 248,144 H 472 Q 480,144 480,136 V 112"
+            fill="none" stroke="#7a8399" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow-soft)"/>
+      <rect x="312" y="116" width="104" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="364" y="130" class="arrow-label" fill="#7a8399" text-anchor="middle">miss만 임베딩</text>
+
+      <!-- Airflow ↔ cache -->
+      <line x1="176" y1="296" x2="176" y2="400" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="192" y="332" width="128" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="200" y="346" class="arrow-label" fill="#4f5d75" text-anchor="start">캐시 조회·기록</text>
+
+      <!-- Airflow → Neon -->
+      <line x1="296" y1="272" x2="384" y2="272" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="300" y="244" width="80" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="340" y="258" class="arrow-label" fill="#4f5d75" text-anchor="middle">적재·분류</text>
+
+      <!-- Airflow → Vercel 빌드 (deploy hook) -->
+      <line x1="296" y1="232" x2="672" y2="232" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="416" y="204" width="136" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="484" y="218" class="arrow-label" fill="#4f5d75" text-anchor="middle">deploy hook POST</text>
+
+      <!-- Neon → 빌드 (빌드 시 export, dashed) -->
+      <line x1="592" y1="284" x2="672" y2="284" stroke="#7a8399" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow-soft)"/>
+      <rect x="596" y="292" width="72" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="632" y="306" class="arrow-label" fill="#7a8399" text-anchor="middle">export</text>
+
+      <!-- 빌드 → 번들 -->
+      <line x1="788" y1="288" x2="788" y2="400" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="804" y="332" width="112" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="812" y="346" class="arrow-label" fill="#4f5d75" text-anchor="start">스냅샷 굽기</text>
+
+      <!-- GH Actions → Neon (수동 폴백, dashed) -->
+      <line x1="488" y1="432" x2="488" y2="344" stroke="#7a8399" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow-soft)"/>
+      <rect x="504" y="376" width="136" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="512" y="390" class="arrow-label" fill="#7a8399" text-anchor="start">동일 5단계 · 수동</text>
+
+      <!-- ═══ Nodes ═══ -->
+      <!-- 공공 소스 -->
+      <rect x="56" y="48" width="240" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="56" y="48" width="240" height="64" rx="6" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+      <rect x="68" y="58" width="32" height="16" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="84" y="69" class="tag" fill="rgba(45,49,66,0.80)" text-anchor="middle">SRC</text>
+      <text x="176" y="84" class="node-name" fill="#2d3142" text-anchor="middle">공공 강좌 소스</text>
+      <text x="176" y="104" class="sublabel" fill="#4f5d75" text-anchor="middle">data.go.kr · KSPO · 서울</text>
+
+      <!-- Upstage -->
+      <rect x="384" y="48" width="192" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="384" y="48" width="192" height="64" rx="6" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+      <rect x="396" y="58" width="28" height="16" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="410" y="69" class="tag" fill="rgba(45,49,66,0.80)" text-anchor="middle">API</text>
+      <text x="480" y="84" class="node-name" fill="#2d3142" text-anchor="middle">Upstage Embed</text>
+      <text x="480" y="104" class="sublabel" fill="#4f5d75" text-anchor="middle">과금 · 옵트인 2중 동의</text>
+
+      <!-- Airflow (focal) -->
+      <rect x="56" y="216" width="240" height="80" rx="6" fill="#f5f5f5"/>
+      <rect x="56" y="216" width="240" height="80" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+      <rect x="68" y="226" width="32" height="16" rx="2" fill="transparent" stroke="rgba(235,108,54,0.50)" stroke-width="0.8"/>
+      <text x="84" y="237" class="tag" fill="rgba(235,108,54,0.90)" text-anchor="middle">DAG</text>
+      <text x="176" y="256" class="node-name" fill="#2d3142" text-anchor="middle">Airflow 야간 DAG</text>
+      <text x="176" y="276" class="sublabel" fill="#4f5d75" text-anchor="middle">03:00 · 레포 도구 이미지 실행</text>
+
+      <!-- cache DB -->
+      <rect x="56" y="400" width="240" height="72" rx="6" fill="#f5f5f5"/>
+      <rect x="56" y="400" width="240" height="72" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <rect x="68" y="410" width="36" height="16" rx="2" fill="transparent" stroke="rgba(79,93,117,0.40)" stroke-width="0.8"/>
+      <text x="86" y="421" class="tag" fill="rgba(79,93,117,0.90)" text-anchor="middle">CACHE</text>
+      <text x="176" y="440" class="node-name" fill="#2d3142" text-anchor="middle">embedding_cache</text>
+      <text x="176" y="460" class="sublabel" fill="#4f5d75" text-anchor="middle">로컬 pgvector · 폐기 가능</text>
+
+      <!-- Neon -->
+      <rect x="384" y="256" width="208" height="88" rx="6" fill="#f5f5f5"/>
+      <rect x="384" y="256" width="208" height="88" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <rect x="396" y="266" width="28" height="16" rx="2" fill="transparent" stroke="rgba(79,93,117,0.40)" stroke-width="0.8"/>
+      <text x="410" y="277" class="tag" fill="rgba(79,93,117,0.90)" text-anchor="middle">DB</text>
+      <text x="488" y="302" class="node-name" fill="#2d3142" text-anchor="middle">Neon Postgres</text>
+      <text x="488" y="322" class="sublabel" fill="#4f5d75" text-anchor="middle">courses · 무료 티어</text>
+
+      <!-- Vercel 빌드 -->
+      <rect x="672" y="216" width="232" height="72" rx="6" fill="#f5f5f5"/>
+      <rect x="672" y="216" width="232" height="72" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="684" y="226" width="32" height="16" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="700" y="237" class="tag" fill="rgba(45,49,66,0.80)" text-anchor="middle">CI</text>
+      <text x="788" y="256" class="node-name" fill="#2d3142" text-anchor="middle">빌드</text>
+      <text x="788" y="276" class="sublabel" fill="#4f5d75" text-anchor="middle">export:courses → next build</text>
+
+      <!-- 서버리스 번들 -->
+      <rect x="672" y="400" width="232" height="72" rx="6" fill="#f5f5f5"/>
+      <rect x="672" y="400" width="232" height="72" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="684" y="410" width="28" height="16" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="698" y="421" class="tag" fill="rgba(45,49,66,0.80)" text-anchor="middle">FN</text>
+      <text x="788" y="440" class="node-name" fill="#2d3142" text-anchor="middle">서버리스 번들</text>
+      <text x="788" y="460" class="sublabel" fill="#4f5d75" text-anchor="middle">스냅샷 내장 · DB 없이 서빙</text>
+
+      <!-- GitHub Actions (optional) -->
+      <rect x="384" y="432" width="208" height="72" rx="6" fill="#f5f5f5"/>
+      <rect x="384" y="432" width="208" height="72" rx="6" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="4,3"/>
+      <rect x="396" y="442" width="28" height="16" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="410" y="453" class="tag" fill="rgba(45,49,66,0.80)" text-anchor="middle">GH</text>
+      <text x="488" y="472" class="node-name" fill="#2d3142" text-anchor="middle">GitHub Actions</text>
+      <text x="488" y="492" class="sublabel" fill="#4f5d75" text-anchor="middle">workflow_dispatch 전용</text>
+
+      <!-- ═══ Legend ═══ -->
+      <line x1="40" y1="560" x2="920" y2="560" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <text x="40" y="588" class="legend-label" fill="#4f5d75">LEGEND</text>
+      <line x1="140" y1="583" x2="180" y2="583" stroke="#4f5d75" stroke-width="1.2"/>
+      <text x="192" y="588" class="sublabel" fill="#4f5d75">야간 배치 흐름</text>
+      <line x1="332" y1="583" x2="372" y2="583" stroke="#7a8399" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="384" y="588" class="sublabel" fill="#4f5d75">조건부 · 폴백</text>
+      <rect x="524" y="576" width="16" height="12" rx="2" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="552" y="588" class="sublabel" fill="#4f5d75">순서·재시도·관측성의 소유자</text>
+    </svg>
+  </div>
+</body>
+</html>

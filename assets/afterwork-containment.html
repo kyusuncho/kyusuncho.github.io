@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>네 겹의 봉쇄</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:  #f5f5f5;
+      --color-ink:    #2d3142;
+      --color-muted:  #4f5d75;
+      --color-accent: #eb6c36;
+      --font-sans:  'Geist', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', system-ui, sans-serif;
+      --font-serif: 'Instrument Serif', 'Nanum Myeongjo', serif;
+      --font-mono:  'Geist Mono', 'Apple SD Gothic Neo', 'Noto Sans KR', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; min-width: 760px; display: block; }
+    svg .tag, svg .legend-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.14em; }
+    svg .node-name { font-family: var(--font-sans); font-size: 18px; font-weight: 600; }
+    svg .sublabel { font-family: var(--font-mono); font-size: 12px; }
+    svg .aside { font-family: var(--font-serif); font-style: italic; font-size: 15px; }
+    /* Embed mode: the blog iframes this file with #embed to hide the page chrome (CSS-only, no JS). */
+    body:has(.frame:target) { padding: 0; }
+    .frame:target { max-width: none; }
+    .frame:target .eyebrow, .frame:target h1 { display: none; }
+    .frame:target svg { min-width: 0; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div class="frame" id="embed">
+    <p class="eyebrow">LLM Safety · 퇴근하구 (AfterWork)</p>
+    <h1>네 겹의 봉쇄 — 어느 것도 시스템 프롬프트가 아니다</h1>
+
+    <svg viewBox="0 0 960 616" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="aw-contain-title aw-contain-desc">
+      <title id="aw-contain-title">네 겹의 봉쇄 — 모델의 권한을 제한하는 독립 메커니즘</title>
+      <desc id="aw-contain-desc">스냅샷으로 닫힌 도구, 스냅샷에서 유도된 출력 ID enum, 근거 검증, 프롬프트 채널 분리 네 겹이 각각 독립적으로 범위 확대, 환각 ID, 무근거 인용, 인젝션 탈출을 차단한다. 인젝션이 완전히 성공해도 이미 자격을 통과한 후보 30개의 순서가 나빠질 뿐이다.</desc>
+
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+      <text x="80" y="84" class="sublabel" fill="#7a8399">각 겹은 단독으로도 충분하다 · 전부 TypeScript 제어 흐름과 닫힌 스키마로 강제된다</text>
+
+      <!-- ═══ Layer stack ═══ -->
+      <!-- base -->
+      <rect x="80" y="96" width="800" height="352" rx="6" fill="#ffffff" stroke="#4f5d75" stroke-width="1"/>
+      <line x1="80" y1="184" x2="880" y2="184" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+      <line x1="80" y1="272" x2="880" y2="272" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+      <line x1="80" y1="360" x2="880" y2="360" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+
+      <!-- L1 -->
+      <text x="104" y="144" class="sublabel" fill="#7a8399">1겹</text>
+      <text x="176" y="136" class="node-name" fill="#2d3142">스냅샷으로 닫힌 도구</text>
+      <text x="176" y="160" class="sublabel" fill="#4f5d75">클로저 안에 DB도 SQL도 URL도 없다 — 넓힐 표면 자체가 없음</text>
+      <text x="856" y="144" class="sublabel" fill="#7a8399" text-anchor="end">범위 확대 차단</text>
+
+      <!-- L2 (focal) -->
+      <rect x="80" y="184" width="800" height="88" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+      <text x="104" y="232" class="sublabel" fill="rgba(235,108,54,0.90)">2겹</text>
+      <text x="176" y="224" class="node-name" fill="#2d3142">유도된 출력 ID enum</text>
+      <text x="176" y="248" class="sublabel" fill="#4f5d75">스냅샷 밖 ID는 거부되는 게 아니라 표현 불가능</text>
+      <text x="856" y="232" class="sublabel" fill="#7a8399" text-anchor="end">환각 ID 차단</text>
+
+      <!-- L3 -->
+      <text x="104" y="320" class="sublabel" fill="#7a8399">3겹</text>
+      <text x="176" y="312" class="node-name" fill="#2d3142">근거 검증</text>
+      <text x="176" y="336" class="sublabel" fill="#4f5d75">없는 사실은 모름이지 가정이 아니다 · 금지 주장 어휘</text>
+      <text x="856" y="320" class="sublabel" fill="#7a8399" text-anchor="end">무근거 인용 차단</text>
+
+      <!-- L4 -->
+      <text x="104" y="408" class="sublabel" fill="#7a8399">4겹</text>
+      <text x="176" y="400" class="node-name" fill="#2d3142">프롬프트 채널 분리</text>
+      <text x="176" y="424" class="sublabel" fill="#4f5d75">바이트 고정 지시문 · 신뢰 불가 텍스트는 &lt;fact&gt; 격리 · 무해화</text>
+      <text x="856" y="408" class="sublabel" fill="#7a8399" text-anchor="end">인젝션 탈출 차단</text>
+
+      <!-- ═══ Editorial aside ═══ -->
+      <text x="480" y="496" class="aside" fill="#4f5d75" text-anchor="middle">인젝션이 완전히 성공해도 — 이미 자격을 통과한 30개의 순서가 나빠질 뿐이다.</text>
+      <text x="480" y="520" class="aside" fill="#4f5d75" text-anchor="middle">에이전트에게는 쿼리로 돌아가는 경로가 없다.</text>
+
+      <!-- ═══ Legend ═══ -->
+      <line x1="40" y1="560" x2="920" y2="560" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <text x="40" y="588" class="legend-label" fill="#4f5d75">LEGEND</text>
+      <rect x="140" y="576" width="16" height="12" rx="2" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="168" y="588" class="sublabel" fill="#4f5d75">구조적 보증의 핵심 — enum은 선언이 아니라 유도된다</text>
+    </svg>
+  </div>
+</body>
+</html>

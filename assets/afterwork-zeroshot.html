@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>프로토타입 제로샷 분류 파이프라인</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:  #f5f5f5;
+      --color-ink:    #2d3142;
+      --color-muted:  #4f5d75;
+      --color-accent: #eb6c36;
+      --font-sans:  'Geist', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', system-ui, sans-serif;
+      --font-serif: 'Instrument Serif', 'Nanum Myeongjo', serif;
+      --font-mono:  'Geist Mono', 'Apple SD Gothic Neo', 'Noto Sans KR', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; min-width: 760px; display: block; }
+    svg .zone-label, svg .tag, svg .legend-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.14em; }
+    svg .node-name { font-family: var(--font-sans); font-size: 16px; font-weight: 600; }
+    svg .sublabel { font-family: var(--font-mono); font-size: 12px; }
+    svg .arrow-label { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.02em; }
+    svg .aside { font-family: var(--font-serif); font-style: italic; font-size: 15px; }
+    /* Embed mode: the blog iframes this file with #embed to hide the page chrome (CSS-only, no JS). */
+    body:has(.frame:target) { padding: 0; }
+    .frame:target { max-width: none; }
+    .frame:target .eyebrow, .frame:target h1 { display: none; }
+    .frame:target svg { min-width: 0; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div class="frame" id="embed">
+    <p class="eyebrow">ML Pipeline · 퇴근하구 (AfterWork)</p>
+    <h1>프로토타입 제로샷 분류 — 학습 데이터 0건</h1>
+
+    <svg viewBox="0 0 960 816" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="aw-zeroshot-title aw-zeroshot-desc">
+      <title id="aw-zeroshot-title">프로토타입 기반 제로샷 분류 파이프라인</title>
+      <desc id="aw-zeroshot-desc">원본 레코드가 결정론적 정규화, SHA-256 정규 입력, 프라이버시 프리플라이트를 거쳐 Upstage 임베딩으로 벡터가 되고, 해시로 잠긴 다섯 개 프로토타입과의 코사인 argmax로 카테고리가 배정되어 입력 해시 펜스를 통과할 때만 기록된다. 캐시는 SHA-256 주소 기반이고 폐기 가능하다.</desc>
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="arrow-soft" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#7a8399"/></marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+      <!-- ═══ Arrows (before nodes) ═══ -->
+      <line x1="460" y1="160" x2="460" y2="192" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line x1="460" y1="256" x2="460" y2="288" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line x1="460" y1="352" x2="460" y2="384" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line x1="460" y1="448" x2="460" y2="480" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="476" y="452" width="88" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="520" y="466" class="arrow-label" fill="#4f5d75" text-anchor="start">통과분만 전송</text>
+      <line x1="460" y1="544" x2="460" y2="576" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line x1="460" y1="640" x2="460" y2="672" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="476" y="644" width="104" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="520" y="658" class="arrow-label" fill="#4f5d75" text-anchor="start">해시 펜스 CAS</text>
+
+      <!-- cache: miss 기록 / hit 재사용 -->
+      <line x1="584" y1="500" x2="680" y2="500" stroke="#7a8399" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow-soft)"/>
+      <rect x="600" y="472" width="64" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="632" y="486" class="arrow-label" fill="#7a8399" text-anchor="middle">miss 기록</text>
+      <line x1="680" y1="528" x2="584" y2="528" stroke="#7a8399" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow-soft)"/>
+      <rect x="600" y="536" width="72" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="636" y="550" class="arrow-label" fill="#7a8399" text-anchor="middle">hit 재사용</text>
+
+      <!-- 프로토타입 → 분류 -->
+      <line x1="680" y1="608" x2="584" y2="608" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="588" y="580" width="88" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="632" y="594" class="arrow-label" fill="#4f5d75" text-anchor="middle">query 벡터 5</text>
+
+      <!-- ═══ Nodes ═══ -->
+      <!-- M1 원본 소스 레코드 -->
+      <rect x="336" y="96" width="248" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="336" y="96" width="248" height="64" rx="6" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+      <rect x="348" y="106" width="32" height="16" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="364" y="117" class="tag" fill="rgba(45,49,66,0.80)" text-anchor="middle">SRC</text>
+      <text x="460" y="132" class="node-name" fill="#2d3142" text-anchor="middle">원본 소스 레코드</text>
+      <text x="460" y="152" class="sublabel" fill="#4f5d75" text-anchor="middle">라벨 제각각 · 제목만 있기도</text>
+
+      <!-- M2 결정론적 정규화 -->
+      <rect x="336" y="192" width="248" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="336" y="192" width="248" height="64" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="348" y="202" width="32" height="16" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="364" y="213" class="tag" fill="rgba(45,49,66,0.80)" text-anchor="middle">ETL</text>
+      <text x="460" y="228" class="node-name" fill="#2d3142" text-anchor="middle">결정론적 정규화</text>
+      <text x="460" y="248" class="sublabel" fill="#4f5d75" text-anchor="middle">"월요일" ≠ 월+일 · 요일 디코딩</text>
+
+      <!-- M3 정규 입력 · 해시 -->
+      <rect x="336" y="288" width="248" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="336" y="288" width="248" height="64" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="348" y="298" width="36" height="16" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="366" y="309" class="tag" fill="rgba(45,49,66,0.80)" text-anchor="middle">HASH</text>
+      <text x="460" y="324" class="node-name" fill="#2d3142" text-anchor="middle">정규 입력 · SHA-256</text>
+      <text x="460" y="344" class="sublabel" fill="#4f5d75" text-anchor="middle">buildSemanticInput · 버전 고정</text>
+
+      <!-- M4 프라이버시 프리플라이트 (security boundary) -->
+      <rect x="336" y="384" width="248" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="336" y="384" width="248" height="64" rx="6" fill="rgba(235,108,54,0.05)" stroke="rgba(235,108,54,0.50)" stroke-width="1" stroke-dasharray="4,4"/>
+      <rect x="348" y="394" width="28" height="16" rx="2" fill="transparent" stroke="rgba(235,108,54,0.50)" stroke-width="0.8"/>
+      <text x="362" y="405" class="tag" fill="rgba(235,108,54,0.90)" text-anchor="middle">PII</text>
+      <text x="460" y="420" class="node-name" fill="#2d3142" text-anchor="middle">프라이버시 프리플라이트</text>
+      <text x="460" y="440" class="sublabel" fill="#4f5d75" text-anchor="middle">전화·이메일·URL → 차단</text>
+
+      <!-- M5 Upstage 임베딩 -->
+      <rect x="336" y="480" width="248" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="336" y="480" width="248" height="64" rx="6" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+      <rect x="348" y="490" width="28" height="16" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="362" y="501" class="tag" fill="rgba(45,49,66,0.80)" text-anchor="middle">API</text>
+      <text x="460" y="516" class="node-name" fill="#2d3142" text-anchor="middle">Upstage 임베딩</text>
+      <text x="460" y="536" class="sublabel" fill="#4f5d75" text-anchor="middle">passage 1024d · 순서까지 검증</text>
+
+      <!-- M6 코사인 argmax -->
+      <rect x="336" y="576" width="248" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="336" y="576" width="248" height="64" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <rect x="348" y="586" width="28" height="16" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+      <text x="362" y="597" class="tag" fill="rgba(45,49,66,0.80)" text-anchor="middle">CLS</text>
+      <text x="460" y="612" class="node-name" fill="#2d3142" text-anchor="middle">코사인 argmax 분류</text>
+      <text x="460" y="632" class="sublabel" fill="#4f5d75" text-anchor="middle">5지 선택 · abstention 없음</text>
+
+      <!-- M7 courses.category -->
+      <rect x="336" y="672" width="248" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="336" y="672" width="248" height="64" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <rect x="348" y="682" width="28" height="16" rx="2" fill="transparent" stroke="rgba(79,93,117,0.40)" stroke-width="0.8"/>
+      <text x="362" y="693" class="tag" fill="rgba(79,93,117,0.90)" text-anchor="middle">DB</text>
+      <text x="460" y="708" class="node-name" fill="#2d3142" text-anchor="middle">courses.category</text>
+      <text x="460" y="728" class="sublabel" fill="#4f5d75" text-anchor="middle">온라인 검색의 하드 게이트</text>
+
+      <!-- S1 embedding_cache -->
+      <rect x="680" y="480" width="240" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="680" y="480" width="240" height="64" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+      <rect x="692" y="490" width="36" height="16" rx="2" fill="transparent" stroke="rgba(79,93,117,0.40)" stroke-width="0.8"/>
+      <text x="710" y="501" class="tag" fill="rgba(79,93,117,0.90)" text-anchor="middle">CACHE</text>
+      <text x="800" y="516" class="node-name" fill="#2d3142" text-anchor="middle">embedding_cache</text>
+      <text x="800" y="536" class="sublabel" fill="#4f5d75" text-anchor="middle">콘텐츠 주소 · 폐기 가능</text>
+
+      <!-- S2 프로토타입 레지스트리 (focal) -->
+      <rect x="680" y="576" width="240" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="680" y="576" width="240" height="64" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+      <rect x="692" y="586" width="32" height="16" rx="2" fill="transparent" stroke="rgba(235,108,54,0.50)" stroke-width="0.8"/>
+      <text x="708" y="597" class="tag" fill="rgba(235,108,54,0.90)" text-anchor="middle">REG</text>
+      <text x="800" y="612" class="node-name" fill="#2d3142" text-anchor="middle">프로토타입 레지스트리</text>
+      <text x="800" y="632" class="sublabel" fill="#4f5d75" text-anchor="middle">다섯 문단 · 해시 잠금 · 승인</text>
+
+      <!-- ═══ Editorial aside ═══ -->
+      <text x="756" y="404" class="aside" fill="#4f5d75" text-anchor="middle">탐지되면 정제가 아니라 차단 —</text>
+      <text x="756" y="428" class="aside" fill="#4f5d75" text-anchor="middle">재작성하면 해시가 바뀌고 펜스가 깨진다.</text>
+
+      <!-- ═══ Legend ═══ -->
+      <line x1="40" y1="760" x2="920" y2="760" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <text x="40" y="788" class="legend-label" fill="#4f5d75">LEGEND</text>
+      <line x1="140" y1="783" x2="180" y2="783" stroke="#4f5d75" stroke-width="1.2"/>
+      <text x="192" y="788" class="sublabel" fill="#4f5d75">파이프라인 흐름</text>
+      <line x1="332" y1="783" x2="372" y2="783" stroke="#7a8399" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="384" y="788" class="sublabel" fill="#4f5d75">캐시 우선 경로</text>
+      <rect x="524" y="776" width="16" height="12" rx="2" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="552" y="788" class="sublabel" fill="#4f5d75">분류기 그 자체 — 코드가 아니라 문단</text>
+    </svg>
+  </div>
+</body>
+</html>

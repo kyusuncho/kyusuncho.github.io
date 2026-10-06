@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>두 에이전트 필터 루프</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:  #f5f5f5;
+      --color-ink:    #2d3142;
+      --color-muted:  #4f5d75;
+      --color-accent: #eb6c36;
+      --font-sans:  'Geist', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', system-ui, sans-serif;
+      --font-serif: 'Instrument Serif', 'Nanum Myeongjo', serif;
+      --font-mono:  'Geist Mono', 'Apple SD Gothic Neo', 'Noto Sans KR', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1040px; width: 100%; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; min-width: 760px; display: block; }
+    svg .tag, svg .legend-label { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.14em; }
+    svg .node-name { font-family: var(--font-sans); font-size: 16px; font-weight: 600; }
+    svg .sublabel { font-family: var(--font-mono); font-size: 12px; }
+    svg .arrow-label { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.02em; }
+    svg .aside { font-family: var(--font-serif); font-style: italic; font-size: 15px; }
+    /* Embed mode: the blog iframes this file with #embed to hide the page chrome (CSS-only, no JS). */
+    body:has(.frame:target) { padding: 0; }
+    .frame:target { max-width: none; }
+    .frame:target .eyebrow, .frame:target h1 { display: none; }
+    .frame:target svg { min-width: 0; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div class="frame" id="embed">
+    <p class="eyebrow">Curation · 퇴근하구 (AfterWork)</p>
+    <h1>두 에이전트 필터 루프 — 단조롭게 좁힌다</h1>
+
+    <svg viewBox="0 0 960 824" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="aw-curloop-title aw-curloop-desc">
+      <title id="aw-curloop-title">두 에이전트 필터 루프 — 질문, 응답, 필터, 최종 랭킹</title>
+      <desc id="aw-curloop-desc">검색이 넘긴 최대 30개 후보를 놓고 질문 에이전트가 한국어 질문을 만들고, 게스트 응답을 받아 필터 에이전트가 후보를 단조롭게 줄인다. 생존 후보가 7개 미만이거나 질문이 3회에 도달하면 최종 랭커가 근거 있는 추천 카드를 만든다. 모델은 걸러진 강좌를 되살릴 수 없다.</desc>
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        <marker id="arrow-soft" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#7a8399"/></marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+      <!-- ═══ Arrows (before nodes) ═══ -->
+      <line x1="400" y1="112" x2="400" y2="152" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line x1="400" y1="216" x2="400" y2="256" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line x1="400" y1="312" x2="400" y2="352" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line x1="400" y1="416" x2="400" y2="456" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- 아니오: diamond right vertex → back up to question agent -->
+      <path d="M 520,500 H 592 Q 600,500 600,492 V 192 Q 600,184 592,184 H 512"
+            fill="none" stroke="#7a8399" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow-soft)"/>
+      <rect x="616" y="328" width="112" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="672" y="342" class="arrow-label" fill="#7a8399" text-anchor="middle">아니오 · 한 턴 더</text>
+
+      <!-- 예: diamond bottom → 최종 랭커 -->
+      <line x1="400" y1="544" x2="400" y2="592" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="416" y="552" width="128" height="20" rx="2" fill="#f5f5f5"/>
+      <text x="480" y="566" class="arrow-label" fill="#4f5d75" text-anchor="middle">예 · 큐레이션으로</text>
+
+      <line x1="400" y1="656" x2="400" y2="696" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- ═══ Nodes ═══ -->
+      <!-- start -->
+      <rect x="288" y="64" width="224" height="48" rx="24" fill="#f5f5f5"/>
+      <rect x="288" y="64" width="224" height="48" rx="24" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="400" y="94" class="node-name" fill="#2d3142" text-anchor="middle">검색 완료 · 후보 ≤ 30</text>
+
+      <!-- 질문 에이전트 -->
+      <rect x="288" y="152" width="224" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="288" y="152" width="224" height="64" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="400" y="180" class="node-name" fill="#2d3142" text-anchor="middle">질문 에이전트</text>
+      <text x="400" y="202" class="sublabel" fill="#4f5d75" text-anchor="middle">질문+선택지 생성 · 재검증</text>
+
+      <!-- 게스트 응답 -->
+      <rect x="288" y="256" width="224" height="56" rx="6" fill="#f5f5f5"/>
+      <rect x="288" y="256" width="224" height="56" rx="6" fill="rgba(79,93,117,0.10)" stroke="#7a8399" stroke-width="1"/>
+      <text x="400" y="280" class="node-name" fill="#2d3142" text-anchor="middle">게스트 응답</text>
+      <text x="400" y="300" class="sublabel" fill="#4f5d75" text-anchor="middle">선택지 클릭 · skip 가능</text>
+
+      <!-- 필터 에이전트 -->
+      <rect x="288" y="352" width="224" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="288" y="352" width="224" height="64" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="400" y="380" class="node-name" fill="#2d3142" text-anchor="middle">필터 에이전트</text>
+      <text x="400" y="402" class="sublabel" fill="#4f5d75" text-anchor="middle">keep/discard · 0 방지</text>
+
+      <!-- decision diamond -->
+      <polygon points="400,456 520,500 400,544 280,500" fill="#f5f5f5"/>
+      <polygon points="400,456 520,500 400,544 280,500" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="400" y="496" class="node-name" fill="#2d3142" text-anchor="middle">생존 &lt; 7 ?</text>
+      <text x="400" y="516" class="sublabel" fill="#4f5d75" text-anchor="middle">또는 질문 3회</text>
+
+      <!-- 최종 랭커 (focal) -->
+      <rect x="288" y="592" width="224" height="64" rx="6" fill="#f5f5f5"/>
+      <rect x="288" y="592" width="224" height="64" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+      <text x="400" y="620" class="node-name" fill="#2d3142" text-anchor="middle">최종 랭커</text>
+      <text x="400" y="642" class="sublabel" fill="#4f5d75" text-anchor="middle">근거 검증 통과한 카드만</text>
+
+      <!-- end -->
+      <rect x="288" y="696" width="224" height="48" rx="24" fill="#f5f5f5"/>
+      <rect x="288" y="696" width="224" height="48" rx="24" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+      <text x="400" y="726" class="node-name" fill="#2d3142" text-anchor="middle">카드 스트리밍</text>
+
+      <!-- ═══ Editorial asides ═══ -->
+      <text x="768" y="484" class="aside" fill="#4f5d75" text-anchor="middle">서버는 무상태 —</text>
+      <text x="768" y="508" class="aside" fill="#4f5d75" text-anchor="middle">매 턴 실제 ID와 교집합한다.</text>
+      <text x="148" y="592" class="aside" fill="#4f5d75" text-anchor="middle">집합은 줄어들기만 한다 —</text>
+      <text x="148" y="616" class="aside" fill="#4f5d75" text-anchor="middle">모델은 되살릴 수 없다.</text>
+
+      <!-- ═══ Legend ═══ -->
+      <line x1="40" y1="776" x2="920" y2="776" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+      <text x="40" y="804" class="legend-label" fill="#4f5d75">LEGEND</text>
+      <line x1="140" y1="799" x2="180" y2="799" stroke="#4f5d75" stroke-width="1.2"/>
+      <text x="192" y="804" class="sublabel" fill="#4f5d75">진행 흐름</text>
+      <line x1="300" y1="799" x2="340" y2="799" stroke="#7a8399" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="352" y="804" class="sublabel" fill="#4f5d75">루프 (최대 3회)</text>
+      <rect x="500" y="792" width="16" height="12" rx="2" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+      <text x="528" y="804" class="sublabel" fill="#4f5d75">생성이 허락된 유일한 산출물</text>
+    </svg>
+  </div>
+</body>
+</html>
