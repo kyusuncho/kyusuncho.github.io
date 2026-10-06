@@ -1,0 +1,295 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "멀티 에이전트 매거진 RAG 시스템",
+    "quality_profile": "showcase",
+    "visual_preset": "blueprint",
+    "viewBox": [
+      1080,
+      760
+    ]
+  },
+  "stages": [
+    {
+      "label": "안전 계층"
+    },
+    {
+      "label": "라우팅"
+    },
+    {
+      "label": "전문 에이전트 · 평가"
+    },
+    {
+      "label": "도구 · 벡터 검색"
+    },
+    {
+      "label": "필터 저장소 · 관측"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "guardrails",
+      "type": "security",
+      "label": "NeMo Guardrails",
+      "sublabel": "입력 · 출력 레일",
+      "stage": 0,
+      "row": 2,
+      "width": 132,
+      "height": 62,
+      "tag": "안전 계층"
+    },
+    {
+      "id": "orchestrator",
+      "type": "backend",
+      "label": "오케스트레이터",
+      "sublabel": "의도 판정 · 위임",
+      "stage": 1,
+      "row": 2,
+      "width": 132,
+      "height": 62,
+      "tag": "LangGraph"
+    },
+    {
+      "id": "qa_agent",
+      "type": "backend",
+      "label": "QA 에이전트",
+      "sublabel": "결과로 답변 생성",
+      "stage": 2,
+      "row": 0,
+      "width": 132,
+      "height": 62,
+      "tag": "qa"
+    },
+    {
+      "id": "ragas",
+      "type": "cloud",
+      "label": "회귀 평가",
+      "sublabel": "검색 · 생성 지표",
+      "stage": 2,
+      "row": 2,
+      "width": 132,
+      "height": 62,
+      "tag": "RAGAS"
+    },
+    {
+      "id": "rec_agent",
+      "type": "backend",
+      "label": "추천 에이전트",
+      "sublabel": "결과로 추천 구성",
+      "stage": 2,
+      "row": 4,
+      "width": 132,
+      "height": 62,
+      "tag": "recommend"
+    },
+    {
+      "id": "qa_tool",
+      "type": "backend",
+      "label": "기사 검색 도구",
+      "sublabel": "하이브리드 · 리랭킹",
+      "stage": 3,
+      "row": 1,
+      "width": 132,
+      "height": 62,
+      "tag": "tool"
+    },
+    {
+      "id": "milvus",
+      "type": "database",
+      "label": "Milvus",
+      "sublabel": "임베딩 · 그룹 검색",
+      "stage": 4,
+      "row": 3,
+      "width": 132,
+      "height": 62,
+      "tag": "벡터 DB"
+    },
+    {
+      "id": "rec_tool",
+      "type": "backend",
+      "label": "매거진 추천 도구",
+      "sublabel": "그룹 검색 · 상위 선별",
+      "stage": 3,
+      "row": 3,
+      "width": 132,
+      "height": 62,
+      "tag": "tool"
+    },
+    {
+      "id": "observability",
+      "type": "cloud",
+      "label": "운영 관측",
+      "sublabel": "Prometheus · Grafana",
+      "stage": 4,
+      "row": 0,
+      "width": 132,
+      "height": 62,
+      "tag": "메트릭"
+    },
+    {
+      "id": "postgres",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "발행일 · 카테고리",
+      "stage": 4,
+      "row": 1,
+      "width": 132,
+      "height": 62,
+      "tag": "필터"
+    },
+    {
+      "id": "chitchat_agent",
+      "type": "backend",
+      "label": "단순 응답 에이전트",
+      "sublabel": "검색 없이 즉답",
+      "stage": 1,
+      "row": 4,
+      "width": 132,
+      "height": 62,
+      "tag": "chitchat"
+    }
+  ],
+  "flows": [
+    {
+      "id": "guardrails-orchestrator",
+      "from": "guardrails",
+      "to": "orchestrator",
+      "label": "통과 질의",
+      "variant": "emphasis"
+    },
+    {
+      "id": "orchestrator-qa",
+      "from": "orchestrator",
+      "to": "qa_agent",
+      "label": "qa",
+      "variant": "default"
+    },
+    {
+      "id": "orchestrator-rec",
+      "from": "orchestrator",
+      "to": "rec_agent",
+      "label": "recommend",
+      "variant": "default"
+    },
+    {
+      "id": "orchestrator-chitchat",
+      "from": "orchestrator",
+      "to": "chitchat_agent",
+      "label": "chitchat",
+      "variant": "default"
+    },
+    {
+      "id": "qa-tool-call",
+      "from": "qa_agent",
+      "to": "qa_tool",
+      "label": "도구 호출",
+      "labelDx": -46,
+      "variant": "emphasis"
+    },
+    {
+      "id": "rec-tool-call",
+      "from": "rec_agent",
+      "to": "rec_tool",
+      "label": "도구 호출",
+      "labelDx": -46,
+      "variant": "default"
+    },
+    {
+      "id": "qa-tool-milvus",
+      "from": "qa_tool",
+      "to": "milvus",
+      "label": "임베딩 검색",
+      "variant": "emphasis",
+      "route": "vertical-channel",
+      "channelX": 874,
+      "labelAt": [
+        874,
+        352
+      ]
+    },
+    {
+      "id": "rec-tool-milvus",
+      "from": "rec_tool",
+      "to": "milvus",
+      "label": "group_by",
+      "variant": "default",
+      "labelDx": -12
+    },
+    {
+      "id": "qa-tool-postgres",
+      "from": "qa_tool",
+      "to": "postgres",
+      "label": "필터 조건",
+      "variant": "default"
+    },
+    {
+      "id": "rec-tool-postgres",
+      "from": "rec_tool",
+      "to": "postgres",
+      "label": "필터 조건",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "right",
+      "via": [
+        [
+          745,
+          560
+        ],
+        [
+          1036,
+          560
+        ],
+        [
+          1036,
+          273
+        ]
+      ],
+      "labelAt": [
+        900,
+        560
+      ]
+    },
+    {
+      "id": "qa-tool-return",
+      "from": "qa_tool",
+      "to": "qa_agent",
+      "label": "검색 결과 반환",
+      "labelDx": 46,
+      "fromSide": "top",
+      "toSide": "top",
+      "variant": "dashed"
+    },
+    {
+      "id": "rec-tool-return",
+      "from": "rec_tool",
+      "to": "rec_agent",
+      "label": "추천 결과 반환",
+      "labelDx": 46,
+      "fromSide": "bottom",
+      "toSide": "bottom",
+      "variant": "dashed"
+    },
+    {
+      "id": "qa-ragas",
+      "from": "qa_agent",
+      "to": "ragas",
+      "label": "평가 표본",
+      "variant": "dashed"
+    },
+    {
+      "id": "rec-ragas",
+      "from": "rec_agent",
+      "to": "ragas",
+      "label": "평가 표본",
+      "variant": "dashed"
+    },
+    {
+      "id": "postgres-observability",
+      "from": "postgres",
+      "to": "observability",
+      "label": "저장소 지표",
+      "variant": "dashed"
+    }
+  ]
+}

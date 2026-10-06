@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "설명 가능한 개인화 매거진 추천 구조",
+    "quality_profile": "showcase",
+    "visual_preset": "blueprint",
+    "viewBox": [1080, 760]
+  },
+  "stages": [
+    { "label": "콘텐츠" },
+    { "label": "표현" },
+    { "label": "후보 생성" },
+    { "label": "정책" },
+    { "label": "피드백" }
+  ],
+  "nodes": [
+    { "id": "articles", "type": "database", "label": "기사 아카이브", "sublabel": "텍스트 · 이미지", "stage": 0, "row": 0, "tag": "1,400+" },
+    { "id": "behavior", "type": "database", "label": "열람 행동", "sublabel": "체류 · 전환 · 확대 · 재방문", "stage": 0, "row": 4, "tag": "signals" },
+    { "id": "knowledge", "type": "database", "label": "콘텐츠 지식 그래프", "sublabel": "facet · entity · embedding", "stage": 1, "row": 1, "tag": "Neo4j" },
+    { "id": "profile", "type": "backend", "label": "사용자 표현", "sublabel": "관심사 · 행동 가중치", "stage": 1, "row": 4, "tag": "profile" },
+    { "id": "candidates", "type": "backend", "label": "다중 후보 생성", "sublabel": "벡터 · PPR · 커뮤니티", "stage": 2, "row": 2, "tag": "recall" },
+    { "id": "ranking", "type": "backend", "label": "정책 랭킹", "sublabel": "맥락 · 다양성 · 탐색", "stage": 3, "row": 2, "tag": "bandit" },
+    { "id": "recommendations", "type": "frontend", "label": "설명 가능한 추천", "sublabel": "선정 경로를 근거로 제시", "stage": 4, "row": 1, "tag": "API" },
+    { "id": "feedback", "type": "messagebus", "label": "반응 피드백", "sublabel": "다음 추천에 반영", "stage": 4, "row": 4, "tag": "learn" }
+  ],
+  "flows": [
+    { "id": "articles-knowledge", "from": "articles", "to": "knowledge", "label": "facet · embedding", "variant": "default" },
+    { "id": "behavior-profile", "from": "behavior", "to": "profile", "label": "행동 신호", "variant": "default" },
+    { "id": "knowledge-candidates", "from": "knowledge", "to": "candidates", "label": "그래프 · 벡터", "variant": "emphasis" },
+    { "id": "profile-candidates", "from": "profile", "to": "candidates", "label": "사용자 표현", "variant": "default" },
+    { "id": "candidates-ranking", "from": "candidates", "to": "ranking", "label": "후보군", "variant": "emphasis" },
+    { "id": "ranking-recommendations", "from": "ranking", "to": "recommendations", "label": "선정 결과", "variant": "emphasis" },
+    { "id": "recommendations-feedback", "from": "recommendations", "to": "feedback", "label": "다음 추천 학습", "variant": "dashed" }
+  ]
+}

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>멀티 에이전트 매거진 RAG 시스템</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;600&family=Noto+Serif+KR:wght@400;600&display=swap" rel="stylesheet">
+<script>
+  if (new URLSearchParams(location.search).has('embed')) {
+    document.documentElement.classList.add('embed');
+  }
+</script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #f5f5f5;
+    color: #2d3142;
+    font-family: 'Geist', 'Noto Sans KR', sans-serif;
+    padding: 3rem 2rem 2rem;
+  }
+  .page { max-width: 1140px; margin: 0 auto; }
+  .eyebrow {
+    font-family: 'Geist Mono', 'Noto Sans KR', monospace;
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #7a8399;
+    margin-bottom: 0.75rem;
+  }
+  h1 {
+    font-family: 'Instrument Serif', 'Noto Serif KR', serif;
+    font-size: 1.75rem;
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+  }
+  .subtitle {
+    font-size: 0.875rem;
+    color: #4f5d75;
+    margin-bottom: 2rem;
+  }
+  .diagram { width: 100%; }
+  .diagram svg { width: 100%; height: auto; display: block; }
+  footer {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(45,49,66,0.10);
+    font-family: 'Geist Mono', 'Noto Sans KR', monospace;
+    font-size: 0.6875rem;
+    color: #7a8399;
+    letter-spacing: 0.06em;
+  }
+  /* iframe embed mode: chrome hidden, diagram centered in the frame */
+  .embed body {
+    padding: 0.5rem;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+  }
+  .embed .page { max-width: none; width: 100%; }
+  .embed .eyebrow,
+  .embed h1,
+  .embed .subtitle,
+  .embed footer { display: none; }
+</style>
+</head>
+<body>
+<div class="page">
+  <p class="eyebrow">PLANTYNET · 매거진 RAG</p>
+  <h1>멀티 에이전트 매거진 RAG 시스템</h1>
+  <p class="subtitle">NeMo Guardrails 안전 계층 → 질의 라우팅 → 전문 에이전트의 도구 호출 → Milvus·PostgreSQL 검색 → 결과 반환으로 답변 구성. 평가와 관측은 오프라인 계층.</p>
+
+  <div class="diagram">
+  <svg viewBox="0 0 1100 720" role="img" aria-labelledby="ragflow-title ragflow-desc">
+    <title id="ragflow-title">멀티 에이전트 매거진 RAG 시스템 아키텍처</title>
+    <desc id="ragflow-desc">NeMo Guardrails 안전 계층을 통과한 질의를 오케스트레이터가 판정해 QA·추천·단순 응답 에이전트에 위임하고, QA와 추천 에이전트는 전용 검색 도구를 호출한다. 두 도구는 Milvus 벡터 검색과 PostgreSQL 필터를 함께 사용하며, 반환된 결과로 에이전트가 답변을 구성한다. RAGAS 회귀 평가와 Prometheus·Grafana 관측이 오프라인 계층으로 놓인다.</desc>
+    <defs>
+      <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/>
+      </marker>
+      <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/>
+      </marker>
+      <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/>
+      </marker>
+    </defs>
+
+    <!-- background -->
+    <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+    <!-- column captions -->
+    <text x="88" y="96" fill="rgba(45,49,66,0.40)" font-size="7" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle" letter-spacing="0.14em">01 / 안전</text>
+    <text x="256" y="96" fill="rgba(45,49,66,0.40)" font-size="7" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle" letter-spacing="0.14em">02 / 라우팅</text>
+    <text x="496" y="96" fill="rgba(45,49,66,0.40)" font-size="7" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle" letter-spacing="0.14em">03 / 에이전트</text>
+    <text x="736" y="96" fill="rgba(45,49,66,0.40)" font-size="7" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle" letter-spacing="0.14em">04 / 도구</text>
+    <text x="976" y="96" fill="rgba(45,49,66,0.40)" font-size="7" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle" letter-spacing="0.14em">05 / 저장소</text>
+
+    <!-- ═══════════ arrows (before boxes) ═══════════ -->
+
+    <!-- guardrails → orchestrator (relationship obvious; unlabeled) -->
+    <line x1="136" y1="320" x2="176" y2="320" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+    <!-- orchestrator → qa_agent : top exit, elbow right into left edge -->
+    <path d="M 256,292 V 156 Q 256,148 264,148 H 416" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <rect x="220" y="216" width="28" height="12" rx="2" fill="#f5f5f5"/>
+    <text x="234" y="225" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">QA</text>
+
+    <!-- orchestrator → rec_agent : right exit, elbow down into left edge -->
+    <path d="M 336,328 H 368 Q 376,328 376,336 V 484 Q 376,492 384,492 H 416" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <rect x="308" y="412" width="60" height="12" rx="2" fill="#f5f5f5"/>
+    <text x="338" y="421" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">RECOMMEND</text>
+
+    <!-- orchestrator → chitchat : straight vertical -->
+    <line x1="256" y1="348" x2="256" y2="440" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <rect x="264" y="388" width="60" height="12" rx="2" fill="#f5f5f5"/>
+    <text x="294" y="397" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">CHITCHAT</text>
+
+    <!-- qa_agent → qa_tool : tool call (upper lane) -->
+    <line x1="576" y1="140" x2="656" y2="140" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <rect x="592" y="120" width="48" height="12" rx="2" fill="#f5f5f5"/>
+    <text x="616" y="129" fill="#7a8399" font-size="8" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle" letter-spacing="0.04em">도구 호출</text>
+
+    <!-- qa_tool → qa_agent : result return (lower lane, dashed) -->
+    <line x1="656" y1="156" x2="576" y2="156" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+    <rect x="592" y="164" width="48" height="12" rx="2" fill="#f5f5f5"/>
+    <text x="616" y="173" fill="#7a8399" font-size="8" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle" letter-spacing="0.04em">결과 반환</text>
+
+    <!-- rec_agent → rec_tool : tool call -->
+    <line x1="576" y1="484" x2="656" y2="484" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <rect x="592" y="464" width="48" height="12" rx="2" fill="#f5f5f5"/>
+    <text x="616" y="473" fill="#7a8399" font-size="8" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle" letter-spacing="0.04em">도구 호출</text>
+
+    <!-- rec_tool → rec_agent : result return (dashed) -->
+    <line x1="656" y1="500" x2="576" y2="500" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+    <rect x="592" y="508" width="48" height="12" rx="2" fill="#f5f5f5"/>
+    <text x="616" y="517" fill="#7a8399" font-size="8" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle" letter-spacing="0.04em">결과 반환</text>
+
+    <!-- qa_tool → postgres : straight horizontal -->
+    <line x1="816" y1="140" x2="896" y2="140" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <rect x="828" y="120" width="48" height="12" rx="2" fill="#f5f5f5"/>
+    <text x="852" y="129" fill="#7a8399" font-size="8" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle" letter-spacing="0.04em">필터 조건</text>
+
+    <!-- qa_tool → milvus : elbow down the corridor -->
+    <path d="M 816,156 H 832 Q 840,156 840,164 V 464 Q 840,472 848,472 H 896" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <rect x="772" y="300" width="60" height="12" rx="2" fill="#f5f5f5"/>
+    <text x="802" y="309" fill="#7a8399" font-size="8" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle" letter-spacing="0.04em">임베딩 검색</text>
+
+    <!-- rec_tool → postgres : elbow up the corridor, hops over the crossing -->
+    <path d="M 816,488 H 856 Q 864,488 864,480 a 8,8 0 0 1 0,-16 V 172 Q 864,164 872,164 H 896" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <rect x="872" y="300" width="48" height="12" rx="2" fill="#f5f5f5"/>
+    <text x="896" y="309" fill="#7a8399" font-size="8" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle" letter-spacing="0.04em">필터 조건</text>
+
+    <!-- rec_tool → milvus : straight horizontal with group_by operator chip -->
+    <line x1="816" y1="504" x2="896" y2="504" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <rect x="828" y="496" width="56" height="16" rx="8" fill="#ffffff" stroke="#4f5d75" stroke-width="1"/>
+    <text x="856" y="507" fill="#2d3142" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">group_by</text>
+
+    <!-- qa_agent → ragas : dashed vertical -->
+    <line x1="496" y1="176" x2="496" y2="292" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+    <rect x="504" y="224" width="48" height="12" rx="2" fill="#f5f5f5"/>
+    <text x="528" y="233" fill="#7a8399" font-size="8" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle" letter-spacing="0.04em">평가 표본</text>
+
+    <!-- rec_agent → ragas : dashed vertical up -->
+    <line x1="496" y1="464" x2="496" y2="348" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+    <rect x="504" y="396" width="48" height="12" rx="2" fill="#f5f5f5"/>
+    <text x="528" y="405" fill="#7a8399" font-size="8" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle" letter-spacing="0.04em">평가 표본</text>
+
+    <!-- ═══════════ nodes (after arrows) ═══════════ -->
+
+    <!-- guardrails — security gate (tall bar, focal #2) -->
+    <rect x="40" y="120" width="96" height="400" rx="6" fill="#f5f5f5"/>
+    <rect x="40" y="120" width="96" height="400" rx="6" fill="rgba(235,108,54,0.05)" stroke="rgba(235,108,54,0.50)" stroke-width="1" stroke-dasharray="4,4"/>
+    <rect x="48" y="128" width="28" height="12" rx="2" fill="transparent" stroke="rgba(235,108,54,0.50)" stroke-width="0.8"/>
+    <text x="62" y="137" fill="rgba(235,108,54,0.90)" font-size="7" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle" letter-spacing="0.08em">안전</text>
+    <text x="88" y="308" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans KR', sans-serif" text-anchor="middle">NeMo</text>
+    <text x="88" y="324" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans KR', sans-serif" text-anchor="middle">Guardrails</text>
+    <text x="88" y="344" fill="#4f5d75" font-size="9" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle">입출력 레일</text>
+
+    <!-- orchestrator -->
+    <rect x="176" y="292" width="160" height="56" rx="6" fill="#f5f5f5"/>
+    <rect x="176" y="292" width="160" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+    <rect x="184" y="300" width="52" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+    <text x="210" y="309" fill="rgba(45,49,66,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">LANGGRAPH</text>
+    <text x="256" y="326" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans KR', sans-serif" text-anchor="middle">오케스트레이터</text>
+    <text x="256" y="340" fill="#4f5d75" font-size="9" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle">사용자 질의 의도 판정 · 위임</text>
+
+    <!-- chitchat agent -->
+    <rect x="176" y="440" width="160" height="56" rx="6" fill="#f5f5f5"/>
+    <rect x="176" y="440" width="160" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+    <rect x="184" y="448" width="36" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+    <text x="202" y="457" fill="rgba(45,49,66,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">AGENT</text>
+    <text x="256" y="474" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans KR', sans-serif" text-anchor="middle">단순 응답 에이전트</text>
+    <text x="256" y="488" fill="#4f5d75" font-size="9" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle">검색 없이 즉답</text>
+
+    <!-- qa_agent -->
+    <rect x="416" y="120" width="160" height="56" rx="6" fill="#f5f5f5"/>
+    <rect x="416" y="120" width="160" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+    <rect x="424" y="128" width="36" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+    <text x="442" y="137" fill="rgba(45,49,66,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">AGENT</text>
+    <text x="496" y="154" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans KR', sans-serif" text-anchor="middle">QA 에이전트</text>
+    <text x="496" y="168" fill="#4f5d75" font-size="9" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle">도구 결과로 답변 생성</text>
+
+    <!-- ragas (offline eval — dashed treatment) -->
+    <rect x="416" y="292" width="160" height="56" rx="6" fill="#f5f5f5"/>
+    <rect x="416" y="292" width="160" height="56" rx="6" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="4,3"/>
+    <rect x="424" y="300" width="32" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+    <text x="440" y="309" fill="rgba(45,49,66,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">EVAL</text>
+    <text x="496" y="326" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans KR', sans-serif" text-anchor="middle">회귀 평가</text>
+    <text x="496" y="340" fill="#4f5d75" font-size="9" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle">RAGAS · 검색 · 생성 지표</text>
+
+    <!-- rec_agent -->
+    <rect x="416" y="464" width="160" height="56" rx="6" fill="#f5f5f5"/>
+    <rect x="416" y="464" width="160" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+    <rect x="424" y="472" width="36" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+    <text x="442" y="481" fill="rgba(45,49,66,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">AGENT</text>
+    <text x="496" y="498" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans KR', sans-serif" text-anchor="middle">추천 에이전트</text>
+    <text x="496" y="512" fill="#4f5d75" font-size="9" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle">도구 결과로 추천 구성</text>
+
+    <!-- qa_tool -->
+    <rect x="656" y="120" width="160" height="56" rx="6" fill="#f5f5f5"/>
+    <rect x="656" y="120" width="160" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+    <rect x="664" y="128" width="32" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+    <text x="680" y="137" fill="rgba(45,49,66,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TOOL</text>
+    <text x="736" y="154" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans KR', sans-serif" text-anchor="middle">기사 검색 도구</text>
+    <text x="736" y="168" fill="#4f5d75" font-size="9" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle">하이브리드 · 리랭킹</text>
+
+    <!-- milvus (focal #1) -->
+    <rect x="896" y="464" width="160" height="56" rx="6" fill="#f5f5f5"/>
+    <rect x="896" y="464" width="160" height="56" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+    <rect x="904" y="472" width="40" height="12" rx="2" fill="transparent" stroke="rgba(235,108,54,0.50)" stroke-width="0.8"/>
+    <text x="924" y="481" fill="rgba(235,108,54,0.90)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">VECTOR</text>
+    <text x="976" y="498" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans KR', sans-serif" text-anchor="middle">Milvus</text>
+    <text x="976" y="512" fill="#4f5d75" font-size="9" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle">임베딩 · 그룹 검색</text>
+
+    <!-- rec_tool -->
+    <rect x="656" y="464" width="160" height="56" rx="6" fill="#f5f5f5"/>
+    <rect x="656" y="464" width="160" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+    <rect x="664" y="472" width="32" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+    <text x="680" y="481" fill="rgba(45,49,66,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TOOL</text>
+    <text x="736" y="498" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans KR', sans-serif" text-anchor="middle">매거진 추천 도구</text>
+    <text x="736" y="512" fill="#4f5d75" font-size="9" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle">그룹 검색 · 상위 선별</text>
+
+    <!-- postgres -->
+    <rect x="896" y="120" width="160" height="56" rx="6" fill="#f5f5f5"/>
+    <rect x="896" y="120" width="160" height="56" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+    <rect x="904" y="128" width="28" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+    <text x="918" y="137" fill="rgba(45,49,66,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SQL</text>
+    <text x="976" y="154" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans KR', sans-serif" text-anchor="middle">PostgreSQL</text>
+    <text x="976" y="168" fill="#4f5d75" font-size="9" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle">발행일 · 카테고리 필터</text>
+
+    <!-- observability — cross-cutting footer bar (offline treatment) -->
+    <rect x="40" y="592" width="1016" height="48" rx="6" fill="#f5f5f5"/>
+    <rect x="40" y="592" width="1016" height="48" rx="6" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="4,3"/>
+    <rect x="48" y="600" width="28" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+    <text x="62" y="609" fill="rgba(45,49,66,0.80)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">OBS</text>
+    <text x="548" y="614" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', 'Noto Sans KR', sans-serif" text-anchor="middle">운영 관측</text>
+    <text x="548" y="630" fill="#4f5d75" font-size="9" font-family="'Geist Mono', 'Noto Sans KR', monospace" text-anchor="middle">Prometheus · Grafana — vLLM · Milvus · API 전 계층 메트릭 수집</text>
+
+    <!-- ═══════════ legend ═══════════ -->
+    <line x1="40" y1="668" x2="1056" y2="668" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+    <text x="40" y="692" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LEGEND</text>
+
+    <line x1="120" y1="688" x2="152" y2="688" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text x="160" y="692" fill="#4f5d75" font-size="8" font-family="'Geist Mono', 'Noto Sans KR', monospace">호출 · 질의</text>
+
+    <line x1="272" y1="688" x2="304" y2="688" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+    <text x="312" y="692" fill="#4f5d75" font-size="8" font-family="'Geist Mono', 'Noto Sans KR', monospace">반환 · 평가 표본</text>
+
+    <rect x="456" y="680" width="12" height="12" rx="2" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1"/>
+    <text x="476" y="692" fill="#4f5d75" font-size="8" font-family="'Geist Mono', 'Noto Sans KR', monospace">포컬 · 공유 저장소</text>
+
+    <rect x="624" y="680" width="12" height="12" rx="2" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+    <text x="644" y="692" fill="#4f5d75" font-size="8" font-family="'Geist Mono', 'Noto Sans KR', monospace">저장소</text>
+
+    <rect x="720" y="680" width="12" height="12" rx="2" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="4,3"/>
+    <text x="740" y="692" fill="#4f5d75" font-size="8" font-family="'Geist Mono', 'Noto Sans KR', monospace">오프라인 · 횡단 계층</text>
+
+    <rect x="896" y="680" width="12" height="12" rx="2" fill="rgba(235,108,54,0.05)" stroke="rgba(235,108,54,0.50)" stroke-width="1" stroke-dasharray="4,4"/>
+    <text x="916" y="692" fill="#4f5d75" font-size="8" font-family="'Geist Mono', 'Noto Sans KR', monospace">안전 계층</text>
+  </svg>
+  </div>
+
+  <footer>PLANTYNET 매거진 RAG · DIAGRAM-DESIGN 2.3.5 · 2026</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "매거진 콘텐츠 가공 자동화 파이프라인",
+    "quality_profile": "showcase",
+    "visual_preset": "blueprint",
+    "viewBox": [1080, 760]
+  },
+  "stages": [
+    { "label": "입고" },
+    { "label": "교정" },
+    { "label": "가공" },
+    { "label": "개선" },
+    { "label": "발행" }
+  ],
+  "nodes": [
+    { "id": "issues", "type": "database", "label": "신규 발행호", "sublabel": "아카이브 · 신규 콘텐츠", "stage": 0, "row": 2, "tag": "Dagster" },
+    { "id": "ocr", "type": "backend", "label": "OCR 교정", "sublabel": "기사 구조 복원", "stage": 1, "row": 2, "tag": "agent" },
+    { "id": "memory", "type": "database", "label": "경험 기반 전략", "sublabel": "실패 패턴 축적 · 재사용", "stage": 2, "row": 2, "tag": "ExpeL" },
+    { "id": "transform", "type": "backend", "label": "콘텐츠 가공", "sublabel": "요약 · 번역 · 키워드", "stage": 3, "row": 1, "tag": "LangGraph" },
+    { "id": "classifier", "type": "backend", "label": "경량 분류기", "sublabel": "준온라인 지식 증류", "stage": 3, "row": 4, "tag": "efficient" },
+    { "id": "webview", "type": "frontend", "label": "웹뷰 콘텐츠", "sublabel": "자동 생성 · 발행", "stage": 4, "row": 2, "tag": "output" }
+  ],
+  "flows": [
+    { "id": "issues-ocr", "from": "issues", "to": "ocr", "label": "기사 원문", "variant": "default" },
+    { "id": "ocr-memory", "from": "ocr", "to": "memory", "label": "교정 텍스트", "variant": "default" },
+    { "id": "memory-transform", "from": "memory", "to": "transform", "label": "가공 전략", "variant": "emphasis" },
+    { "id": "transform-classifier", "from": "transform", "to": "classifier", "label": "분류 지식", "variant": "dashed" },
+    { "id": "transform-webview", "from": "transform", "to": "webview", "label": "가공 결과", "variant": "emphasis", "labelDy": -20 },
+    { "id": "classifier-webview", "from": "classifier", "to": "webview", "label": "분류 결과", "variant": "default" }
+  ]
+}
