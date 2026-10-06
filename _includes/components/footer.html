@@ -1,10 +1,21 @@
 {% capture footer_custom %}
   {%- include footer_custom.html -%}
 {% endcapture %}
-<hr>
+{%- comment -%}
+  With no footer copy, everything left in the footer is width-conditional —
+  "back to top" moves to the right-hand column on wide viewports and the social
+  row is mobile-only — so the rule can end up drawn under nothing. It is marked
+  here and hidden at that width in _sass/custom/custom.scss.
+{%- endcomment -%}
+{%- assign footer_copy = footer_custom | strip -%}
+<hr{% if footer_copy == "" %} class="site-footer-rule--bare"{% endif %}>
 <footer>
   {% if site.back_to_top %}
-    <p><a href="#top" id="back-to-top">{{ site.back_to_top_text }}</a></p>
+    {%- comment -%}
+      Hidden once the viewport is wide enough for the right-hand column, which
+      floats its own "back to top" (see _sass/custom/custom.scss).
+    {%- endcomment -%}
+    <p class="back-to-top-footer"><a href="#top" id="back-to-top">{{ site.back_to_top_text }}</a></p>
   {% endif %}
 
   {{ footer_custom }}

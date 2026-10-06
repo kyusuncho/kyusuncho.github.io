@@ -100,6 +100,12 @@ Every field is optional. `card_title` falls back to `title`, `card_excerpt` to t
 - `card_video: /assets/…​.mp4` — a looping muted teaser instead of an image.
 - `card_media: device` — for portrait phone screenshots. Floats the shot over a tinted panel
   instead of centre-cropping it to a landscape frame, which would throw the screen away.
+- `card_media: logo` + `card_logo_bg: "#0d3273"` — for an organisation's mark (the Work
+  Experience entries). Centres the logo, uncropped, on a plate of the given colour: white
+  behind a colour logo, the house colour behind a white/reversed one. The plate is the same
+  size on every card whatever the logo's aspect ratio, and the same in light and dark mode —
+  a logo is only correct on the background it was drawn for. Put the file in
+  `assets/images/logos/`, trimmed to the mark with transparent padding.
 - `card_media: glyph` + `card_glyph: "01"` — a numeral/monogram cover for entries with no
   artwork of their own (the RV Badminton chapters). **A card with no `card_image` and no
   `card_video` falls back to this automatically**, using the title's first letter, so adding
@@ -107,6 +113,10 @@ Every field is optional. `card_title` falls back to `title`, `card_excerpt` to t
 
 The heading above the grid defaults to "Table of contents"; override it per index page with
 `toc_heading: Papers`. `has_toc: false` still drops the whole section.
+
+An index page may be nothing but its front matter — Publications, Projects and Work Experience
+are, so the grid is the page. The rule that normally separates the grid from the page's copy
+is dropped when there is no copy to separate it from.
 
 Implementation: `_includes/components/post_card.html` (one card), the tail of
 `_includes/components/children_nav.html` (loops the children into `.post-grid`), and
@@ -127,10 +137,15 @@ meaningful, since they are the page's navigation.
   conditional on the page having headings.
 - `####` and deeper are ignored on purpose; two levels keep the panel scannable.
 - Opt a page out with `toc_aside: false` in its front matter.
+- "Back to top" floats at the foot of that same column, in the panel's eyebrow type. It is
+  *not* part of the panel — it is in the layout, so it shows on every page, panel or not.
+  Below the three-column width the column is gone and the footer's own copy takes over;
+  exactly one of the two is visible at any width.
 
 Implementation, if it needs changing: `_includes/toc_aside_custom.html` (builds the list from
 the rendered HTML at build time), `_sass/custom/custom.scss` (`.toc-aside*`, plus the
-three-column widths), `_includes/js/custom.js` (scroll-spy highlighting).
+three-column widths), `_includes/js/custom.js` (scroll-spy highlighting). The floating link is
+`.toc-aside-rail` / `.toc-aside-top` in `_layouts/default.html`.
 
 ## Linking between posts
 

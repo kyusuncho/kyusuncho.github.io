@@ -19,18 +19,34 @@ layout: table_wrappers
   <div class="main" id="top">
     {% include components/header.html %}
     {% include toc_aside_custom.html html=content %}
+    {%- comment -%}
+      "Back to top", floated at the foot of the right-hand column. It sits
+      outside the "On this page" panel on purpose: that panel is only built for
+      pages with two or more headings, while this belongs on every page. The
+      footer keeps its own copy for viewports too narrow for the column.
+    {%- endcomment -%}
+    {% if site.back_to_top %}
+      <div class="toc-aside-rail">
+        <a class="toc-aside-top" href="#top">{{ site.back_to_top_text }}</a>
+      </div>
+    {% endif %}
     <div class="main-content-wrap">
       {% include components/breadcrumbs.html %}
       <div id="main-content" class="main-content">
         <main>
+          {% assign page_content = content %}
+          {% if page.card_tags and page.name != "index.md" %}
+            {% capture h1_close_with_tags %}</h1>{% include components/page_tags.html tags=page.card_tags %}{% endcapture %}
+            {% assign page_content = content | replace_first: "</h1>", h1_close_with_tags %}
+          {% endif %}
           {% if site.heading_anchors != false %}
-            {% include vendor/anchor_headings.html html=content beforeHeading="true" anchorBody="<svg viewBox=\"0 0 16 16\" aria-hidden=\"true\"><use xlink:href=\"#svg-link\"></use></svg>" anchorClass="anchor-heading" anchorAttrs="aria-labelledby=\"%html_id%\"" %}
+            {% include vendor/anchor_headings.html html=page_content beforeHeading="true" anchorBody="<svg viewBox=\"0 0 16 16\" aria-hidden=\"true\"><use xlink:href=\"#svg-link\"></use></svg>" anchorClass="anchor-heading" anchorAttrs="aria-labelledby=\"%html_id%\"" %}
           {% else %}
-            {{ content }}
+            {{ page_content }}
           {% endif %}
 
           {% if page.has_toc != false %}
-            {% include components/children_nav.html %}
+            {% include components/children_nav.html page_content=content %}
           {% endif %}
         </main>
         {% include components/footer.html %}

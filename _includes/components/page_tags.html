@@ -1,0 +1,7 @@
+{%- comment -%}
+  Renders a comma-separated tag list (page.card_tags) as the inline "#tag"
+  chip row. Injected by _layouts/default.html right after the page's first
+  <h1>, so posts only declare card_tags in front matter — no inline HTML.
+{%- endcomment -%}
+{%- assign tag_list = include.tags | split: "," -%}
+<p class="pub-tags">{%- for tag in tag_list -%}<span class="pub-tag">#{{ tag | strip }}</span>{%- endfor -%}</p>

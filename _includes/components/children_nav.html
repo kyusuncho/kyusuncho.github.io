@@ -83,7 +83,14 @@
   a child with none still gets a card, just with a monogram cover and its nav
   title. `summary` is the theme's own field, so it stays the excerpt fallback.
 {%- endcomment -%}
-<hr>
+{%- comment -%}
+  The rule separates the grid from the page's own copy, so an index that is
+  nothing but its grid has nothing to separate from. The caller passes the
+  rendered page in `page_content`; `page.content` is not the page's own body
+  by the time a layout include runs.
+{%- endcomment -%}
+{%- assign page_body = include.page_content | strip -%}
+{%- unless page_body == "" -%}<hr>{%- endunless -%}
 {% include toc_heading_custom.html %}
 <div class="post-grid">
   {%- for nav_child in nav_children -%}
@@ -99,6 +106,7 @@
         media=nav_child.card_media
         image=nav_child.card_image
         video=nav_child.card_video
+        logo_bg=nav_child.card_logo_bg
         alt=nav_child.card_alt
         glyph=nav_child.card_glyph -%}
   {%- endfor -%}

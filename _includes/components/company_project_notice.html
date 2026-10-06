@@ -1,0 +1,13 @@
+{%- comment -%}
+  Company-project disclaimer panel shared by the Projects posts.
+  Renders the theme's `warning` callout (see `callouts:` in _config.yml).
+
+  Usage (default wording):
+    {% include components/company_project_notice.html %}
+  Override for a post with different scope wording:
+    {% include components/company_project_notice.html text="회사 R&D이므로 …" %}
+{%- endcomment -%}
+{%- assign notice_text = include.text | default: "회사 프로젝트이므로 공개 가능한 범위의 목표, 시스템 구성, 제 기여와 성과만 정리했습니다." -%}
+<blockquote class="warning">
+  <p>{{ notice_text }}</p>
+</blockquote>

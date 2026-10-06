@@ -1,3 +1,9 @@
-{%- if site.footer_content -%}
+{%- comment -%}
+  The site-wide attribution line, kept to the home page. Repeating it under
+  every post says nothing a reader has not already been told once, and on the
+  index pages — which are now nothing but a card grid — it was the only text
+  below the fold. Its place in the footer is unchanged.
+{%- endcomment -%}
+{%- if site.footer_content and page.url == "/" -%}
   <p class="text-small mb-0">{{ site.footer_content }}</p>
 {%- endif -%}

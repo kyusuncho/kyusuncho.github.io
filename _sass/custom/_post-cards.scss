@@ -21,6 +21,8 @@ $post-card-media-width: 12.5rem;
 $post-card-radius: 0.5rem;
 // Below this the media rail is too narrow to show anything, so the card stacks.
 $post-card-stack-width: 34rem;
+// Every brand plate is this tall whatever its logo's aspect ratio (see below).
+$post-card-logo-plate-height: 4.5rem;
 
 .post-grid {
   display: grid;
@@ -118,6 +120,53 @@ $post-card-stack-width: 34rem;
 
 .post-card:hover .post-card-media--device img {
   transform: translateX(-50%) translateY(-4px);
+}
+
+// An organisation's mark, sitting on the background it was drawn for: white
+// behind a colour logo, the house colour behind a reversed one (`card_logo_bg`
+// supplies it per card). The panel is therefore the same in both colour
+// schemes — retinting it would break the contrast the logo was designed with.
+// `contain` plus generous padding keeps clear space around the mark; a logo
+// cropped or bled to the edge reads as a mistake in a way a photo does not.
+.post-card-media--logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $sp-4;
+
+  // The plate, not the rail, carries the brand colour: a full-bleed white panel
+  // for a colour mark turns into a glaring slab in dark mode, and sitting the
+  // two brands' panels side by side made the lighter one read as the louder
+  // entry. Inset, they read as two logo tiles on the same shelf.
+  // One plate size for every brand, with the mark contained inside it. Sizing
+  // the plate to the artwork instead would make a tall logo tower over a wide
+  // wordmark, and the rail would stop reading as one shelf.
+  img {
+    width: 100%;
+    height: $post-card-logo-plate-height;
+    padding: $sp-3;
+    object-fit: contain;
+    background-color: var(--post-card-logo-bg, #fff);
+    border-radius: $post-card-radius;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+    transition: transform $transition-duration ease;
+  }
+
+  // Stacked, the rail's 16/9 frame would strand the plate in a field of tint
+  // and stretch it into a banner. Height it to the plate instead and keep the
+  // plate tile-shaped.
+  @media (max-width: $post-card-stack-width) {
+    aspect-ratio: auto;
+    min-height: 0;
+
+    img {
+      max-width: 16rem;
+    }
+  }
+}
+
+.post-card:hover .post-card-media--logo img {
+  transform: scale(1.04);
 }
 
 // Fallback cover for entries with no screenshot of their own (series chapters).
@@ -235,6 +284,7 @@ $post-card-stack-width: 34rem;
   .post-card-media--cover img,
   .post-card-media--cover video,
   .post-card-media--device img,
+  .post-card-media--logo img,
   .post-card-glyph,
   .post-card-arrow {
     transition: none;
@@ -243,6 +293,7 @@ $post-card-stack-width: 34rem;
   .post-card:hover,
   .post-card:hover .post-card-media--cover img,
   .post-card:hover .post-card-media--cover video,
+  .post-card:hover .post-card-media--logo img,
   .post-card:hover .post-card-glyph {
     transform: none;
   }

@@ -16,11 +16,17 @@
     tags      Comma-separated list; each item is rendered as a "#tag" chip.
     media     Thumbnail treatment: "cover" (default) fills the frame,
               "device" floats a portrait app screenshot over a tinted panel,
+              "logo" centres an organisation's mark on a brand-coloured panel,
               "glyph" draws a numeral/monogram. With no `image` or `video` to
               show, "glyph" is used regardless, so a card added without artwork
               still gets a cover instead of a hole in the grid.
     image     Site-absolute image path, e.g. "/assets/images/foo.png".
     video     Site-absolute video path; used instead of `image` when given.
+    logo_bg   With media "logo", the panel colour behind the mark — each brand
+              supplies the background its own logo is drawn for (white for a
+              colour mark, the house colour for a reversed one). Fixed rather
+              than theme-aware on purpose: a logo is only correct on the
+              background it was made for.
     alt       Alt text for `image`. Cards are decorative next to their own
               title, so this defaults to empty rather than repeating it.
     glyph     Text drawn by the "glyph" treatment (e.g. "01"); defaults to the
@@ -39,7 +45,7 @@
 {%- elsif include.video -%}
 <span class="post-card-media post-card-media--cover"><video src="{{ include.video | relative_url }}" autoplay muted loop playsinline aria-hidden="true"></video></span>
 {%- else -%}
-<span class="post-card-media post-card-media--{{ media }}"><img src="{{ include.image | relative_url }}" alt="{{ include.alt | default: '' }}" loading="lazy"></span>
+<span class="post-card-media post-card-media--{{ media }}"{% if include.logo_bg %} style="--post-card-logo-bg: {{ include.logo_bg }}"{% endif %}><img src="{{ include.image | relative_url }}" alt="{{ include.alt | default: '' }}" loading="lazy"></span>
 {%- endif -%}
 <span class="post-card-body">
 {%- if include.eyebrow -%}<span class="post-card-eyebrow">{{ include.eyebrow }}</span>{%- endif -%}
