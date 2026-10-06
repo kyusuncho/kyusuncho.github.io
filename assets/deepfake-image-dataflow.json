@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "온디바이스 딥페이크 이미지 탐지 흐름",
+    "quality_profile": "showcase",
+    "visual_preset": "blueprint",
+    "viewBox": [1080, 760]
+  },
+  "stages": [
+    { "label": "데이터" },
+    { "label": "학습" },
+    { "label": "검증" },
+    { "label": "변환" },
+    { "label": "온디바이스" }
+  ],
+  "nodes": [
+    { "id": "images", "type": "database", "label": "얼굴 이미지", "sublabel": "10M+ · DVC", "stage": 0, "row": 1, "tag": "versioned" },
+    { "id": "preprocess", "type": "backend", "label": "분산 전처리", "sublabel": "Ray Data", "stage": 0, "row": 3, "tag": "parallel" },
+    { "id": "training", "type": "backend", "label": "모델 학습", "sublabel": "Lightning · Hydra · W&B", "stage": 1, "row": 2, "tag": "reproducible" },
+    { "id": "evaluation", "type": "backend", "label": "성능 평가", "sublabel": "전체 · 한국인 서브셋", "stage": 2, "row": 2, "tag": "AUC / ACC" },
+    { "id": "conversion", "type": "backend", "label": "모델 변환", "sublabel": "PyTorch → LiteRT", "stage": 3, "row": 2, "tag": "parity" },
+    { "id": "android", "type": "frontend", "label": "Android 탐지", "sublabel": "실시간 온디바이스 추론", "stage": 4, "row": 2, "tag": "local" }
+  ],
+  "flows": [
+    { "id": "image-preprocess", "from": "images", "to": "preprocess", "label": "버전 데이터", "variant": "default" },
+    { "id": "preprocess-training", "from": "preprocess", "to": "training", "label": "학습 샘플", "variant": "emphasis" },
+    { "id": "training-evaluation", "from": "training", "to": "evaluation", "label": "체크포인트", "variant": "default" },
+    { "id": "evaluation-conversion", "from": "evaluation", "to": "conversion", "label": "선정 모델", "variant": "default" },
+    { "id": "conversion-android", "from": "conversion", "to": "android", "label": "경량 모델", "variant": "emphasis" }
+  ]
+}
