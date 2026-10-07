@@ -1,6 +1,7 @@
 ---
 title: Chapter 5 — 두 번째 클라이언트가 백엔드에 되묻는 것들
-parent: 퇴근하구 (AfterWork)
+parent: 퇴근하구 개발 일지
+grandparent: Journal
 nav_order: 5
 card_title: 두 번째 클라이언트가 백엔드에 되묻는 것들
 card_eyebrow: Chapter 5
@@ -14,7 +15,7 @@ card_tags: apps-in-toss, cors, identity, rate-limiting
 
 > **상태를 먼저 밝힌다.** 미니앱은 `.ait` 번들까지 만들어진 상태지만, 앱인토스 콘솔 등록·샌드박스 실기기 테스트·출시 검수는 아직이다. 이 편의 스크린샷은 로컬 fixture 백엔드 + Vite dev 서버를 폰 뷰포트로 찍은 것이다. 라이브 검증 전 단계의 설계 기록으로 읽어 주면 좋겠다.
 
-[Chapter 1]({% link projects/afterwork/hypothesis.md %})의 가설 — *"게스트가 지도 위 동선 매칭을 보면 로그인할 만한 가치를 느낀다"* — 을 검증하려면 직장인 게스트가 필요하다. 웹 랜딩 하나로는 그 트래픽이 오지 않는다. **앱인토스(Apps-in-Toss)** 는 토스 앱 안에서 서드파티 미니앱을 노출하는 채널이고, 설치 없이 정확히 그 타깃 사용자가 그대로 진입한다. PoC 유통 채널로 이보다 나은 조건은 없었다.
+[Chapter 1]({% link journal/afterwork/hypothesis.md %})의 가설 — *"게스트가 지도 위 동선 매칭을 보면 로그인할 만한 가치를 느낀다"* — 을 검증하려면 직장인 게스트가 필요하다. 웹 랜딩 하나로는 그 트래픽이 오지 않는다. **앱인토스(Apps-in-Toss)** 는 토스 앱 안에서 서드파티 미니앱을 노출하는 채널이고, 설치 없이 정확히 그 타깃 사용자가 그대로 진입한다. PoC 유통 채널로 이보다 나은 조건은 없었다.
 
 대가는 제약이다. 토스 정책은 **CSR/SSG만 허용, SSR 금지**하고 **외부 URL 로드·리다이렉트를 반려**한다. 이 두 조항이 이번 편의 아키텍처를 사실상 결정했다.
 
@@ -80,7 +81,7 @@ export function resolveCorsOrigin(origin) {
 
 ## 넣지 않은 것: LLM 큐레이션
 
-[Chapter 3]({% link projects/afterwork/curation.md %})의 제한형 큐레이션 챗봇은 미니앱에 **없다**. 결정이지 누락이 아니다.
+[Chapter 3]({% link journal/afterwork/curation.md %})의 제한형 큐레이션 챗봇은 미니앱에 **없다**. 결정이지 누락이 아니다.
 
 - **지연.** 큐레이션 루프의 최악 지연은 약 120초다. WebView 안에서 그 시간을 기다리게 하는 건 가설과 무관한 이탈을 만든다.
 - **어드미션 컨트롤.** `POST /api/curation`은 익명이고 요청당 LLM 호출을 최대 세 번 한다. 웹 랜딩 하나일 때는 충분했지만, 위 레이트 리미터가 아직 구현 전인 상태로 토스 트래픽 앞에 그대로 노출하는 건 무방비다.

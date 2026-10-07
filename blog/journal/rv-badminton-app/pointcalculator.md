@@ -1,6 +1,7 @@
 ---
 title: Chapter 2 — PointCalculator
-parent: RV Badminton App
+parent: RV Badminton 개발 일지
+grandparent: Journal
 nav_order: 2
 card_title: PointCalculator
 card_eyebrow: Chapter 2

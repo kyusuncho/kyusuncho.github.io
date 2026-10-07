@@ -1,6 +1,7 @@
 ---
 title: Chapter 3 — LLM에게 권한을 덜 주기
-parent: 퇴근하구 (AfterWork)
+parent: 퇴근하구 개발 일지
+grandparent: Journal
 nav_order: 3
 card_title: LLM에게 권한을 덜 주기
 card_eyebrow: Chapter 3
@@ -12,7 +13,7 @@ card_tags: vercel-ai-sdk, llm-safety, structured-output
 
 # LLM에게 권한을 덜 주기: 제한형 큐레이션
 
-[Chapter 2]({% link projects/afterwork/embeddings.md %})가 끝나는 시점에, 검색은 모든 하드 제약을 만족하는 강좌를 최대 30개 뽑아 놓았다. 활성, 미만료, 카테고리 일치, 예산 이내, 우회 타원 안 — 결정론적 스코어러로 정렬까지 되어 있다.
+[Chapter 2]({% link journal/afterwork/embeddings.md %})가 끝나는 시점에, 검색은 모든 하드 제약을 만족하는 강좌를 최대 30개 뽑아 놓았다. 활성, 미만료, 카테고리 일치, 예산 이내, 우회 타원 안 — 결정론적 스코어러로 정렬까지 되어 있다.
 
 그러면 정직한 질문이 남는다. **언어 모델에게 남은 유용한 일은 무엇인가?**
 
@@ -144,4 +145,4 @@ card_tags: vercel-ai-sdk, llm-safety, structured-output
 
 세 편에 걸쳐 같은 결정이 반복해서 돌아왔다. 하위 문제마다, 실제로 맞는 도구는 무엇인가. 자격·기하·랭킹·폴백은 **결정론적 소프트웨어**, 의미와 분류는 **임베딩**, 우주를 제한하는 건 **검색**, 주관적 정제와 근거 있는 표현은 **생성** — 그리고 그 외에는 아무것도. 이 배분을 제대로 하는 것이 개별 모델 선택보다 훨씬 중요했다. 더 강한 모델이라도 생성에게 자격을 결정하게 둔 시스템을 고쳐 주지 못하고, 더 약한 모델이라도 이 경계 안에서는 충분히 잘 작동한다.
 
-남은 질문은 하나다. 이 전부 — 수집, 임베딩, 분류, 적재 — 를 매일 밤 누가 돌리는가? [Chapter 4]({% link projects/afterwork/pipeline.md %})가 그 답이다.
+남은 질문은 하나다. 이 전부 — 수집, 임베딩, 분류, 적재 — 를 매일 밤 누가 돌리는가? [Chapter 4]({% link journal/afterwork/pipeline.md %})가 그 답이다.

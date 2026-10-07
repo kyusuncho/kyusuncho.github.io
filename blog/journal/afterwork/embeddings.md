@@ -1,6 +1,7 @@
 ---
 title: Chapter 2 — 임베딩 하나로 분류와 검색까지
-parent: 퇴근하구 (AfterWork)
+parent: 퇴근하구 개발 일지
+grandparent: Journal
 nav_order: 2
 card_title: 임베딩 하나로 분류와 검색까지
 card_eyebrow: Chapter 2
@@ -98,7 +99,7 @@ export function decodeKoreanDays(text: string): number[] {
 
 핵심 결정은 이것이다. 탐지된 입력은 조용히 정제되지 않고 **차단**된다. 재작성하면 정규 문자열이 바뀌고, 그러면 해시가 바뀌고, 그러면 펜스 계약이 깨진다. 차단은 불변식을 지키면서 그 레코드를 검토 대상으로 드러낸다. 야간 배치 로그의 `privacyBlocked: 2` 같은 카운터가 바로 이 경로다.
 
-캐시는 콘텐츠 주소 기반(SHA-256)이고 **폐기 가능**하다. 모든 캐시 벡터는 이미 어떤 강좌 행에 있으므로, 통째로 지워도 프로바이더 호출 0건에 재구성된다. [Chapter 4]({% link projects/afterwork/pipeline.md %})에서 이 성질 덕분에 캐시 DB를 홈 서버 로컬에 두고 Neon 무료 티어 용량을 아낄 수 있었다.
+캐시는 콘텐츠 주소 기반(SHA-256)이고 **폐기 가능**하다. 모든 캐시 벡터는 이미 어떤 강좌 행에 있으므로, 통째로 지워도 프로바이더 호출 0건에 재구성된다. [Chapter 4]({% link journal/afterwork/pipeline.md %})에서 이 성질 덕분에 캐시 DB를 홈 서버 로컬에 두고 Neon 무료 티어 용량을 아낄 수 있었다.
 
 ## abstention을 걷어낸 이유
 
@@ -169,4 +170,4 @@ KSPO가 코퍼스의 대부분이라 운동이 압도적이다. 이 편향은 �
 
 그리고 그 벡터는 두 번 쓰인다. 그 사이에서 결정론적 시스템 — SQL 게이트, PostGIS 타원, 3-상태 일정, 버전 고정 스코어러 — 이 자격과 사실 범위를 소유한다. 모델에 도달하는 것은 모든 하드 제약을 이미 만족한 최대 30개의 후보다.
 
-[Chapter 3]({% link projects/afterwork/curation.md %})은 언어 모델이 그 제한된 집합으로 무엇을 유용하게 할 수 있는지, 그리고 그 밖의 일을 하지 못하게 막는 네 개의 독립 메커니즘에 대한 이야기다.
+[Chapter 3]({% link journal/afterwork/curation.md %})은 언어 모델이 그 제한된 집합으로 무엇을 유용하게 할 수 있는지, 그리고 그 밖의 일을 하지 못하게 막는 네 개의 독립 메커니즘에 대한 이야기다.

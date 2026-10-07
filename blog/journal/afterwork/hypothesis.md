@@ -1,6 +1,7 @@
 ---
 title: Chapter 1 — 챗봇을 넘어서
-parent: 퇴근하구 (AfterWork)
+parent: 퇴근하구 개발 일지
+grandparent: Journal
 nav_order: 1
 card_title: 챗봇을 넘어서 — 퇴근길을 중심에 둔 추천 PoC
 card_eyebrow: Chapter 1
@@ -79,7 +80,7 @@ card_tags: system-design, ml-architecture, poc
   </a>
 </div>
 
-왼쪽 절반은 **오프라인 ML 데이터 파이프라인**이다. 원본에서 수집하고, 정규화하고, 임베딩하고, 분류하고, DB에 적재한다. 사용자 요청과 무관하게 매일 밤 한 번 돈다([Chapter 4]({% link projects/afterwork/pipeline.md %})). 오른쪽 절반은 **온라인 추천 경로**다. 하드 게이트 → 하이브리드 검색([Chapter 2]({% link projects/afterwork/embeddings.md %})) → 결정론적 랭킹 → 제한형 LLM 큐레이션([Chapter 3]({% link projects/afterwork/curation.md %})). 두 절반은 DB 스냅샷 하나로만 만나고, 런타임은 절대 원본 API를 호출하지 않는다.
+왼쪽 절반은 **오프라인 ML 데이터 파이프라인**이다. 원본에서 수집하고, 정규화하고, 임베딩하고, 분류하고, DB에 적재한다. 사용자 요청과 무관하게 매일 밤 한 번 돈다([Chapter 4]({% link journal/afterwork/pipeline.md %})). 오른쪽 절반은 **온라인 추천 경로**다. 하드 게이트 → 하이브리드 검색([Chapter 2]({% link journal/afterwork/embeddings.md %})) → 결정론적 랭킹 → 제한형 LLM 큐레이션([Chapter 3]({% link journal/afterwork/curation.md %})). 두 절반은 DB 스냅샷 하나로만 만나고, 런타임은 절대 원본 API를 호출하지 않는다.
 
 이 그림에서 웹 프레임워크(Next.js)는 의도적으로 맨 아래 한 줄이다. 서버 프록시와 타입 안전한 경계를 주지만, 이 시리즈의 관심사는 그 위에 얹힌 ML 시스템 쪽이다.
 
@@ -150,7 +151,7 @@ PoC의 크리티컬 패스 병목은 코드가 아니라 **외부 키**였다. d
 
 이 제품에서 어려웠던 건 강좌를 찾는 일이 아니었다. 파편화되고, 라벨이 제각각이고, 좌표가 절반쯤 붙어 있는 공공 레코드를, 직장인이 믿고 행동할 만한 추천으로 바꾸는 일이었다. 그리고 그것을 **PoC 예산 안에서** — 무료 티어, 홈 서버 한 대, 개발 계정 쿼터 — 해내는 일이었다.
 
-- [Chapter 2 — 임베딩 하나로 분류와 검색까지]({% link projects/afterwork/embeddings.md %})
-- [Chapter 3 — LLM에게 권한을 덜 주기]({% link projects/afterwork/curation.md %})
-- [Chapter 4 — 매일 밤 데이터를 새로 만드는 일]({% link projects/afterwork/pipeline.md %})
-- [Chapter 5 — 두 번째 클라이언트가 백엔드에 되묻는 것들]({% link projects/afterwork/miniapp.md %})
+- [Chapter 2 — 임베딩 하나로 분류와 검색까지]({% link journal/afterwork/embeddings.md %})
+- [Chapter 3 — LLM에게 권한을 덜 주기]({% link journal/afterwork/curation.md %})
+- [Chapter 4 — 매일 밤 데이터를 새로 만드는 일]({% link journal/afterwork/pipeline.md %})
+- [Chapter 5 — 두 번째 클라이언트가 백엔드에 되묻는 것들]({% link journal/afterwork/miniapp.md %})

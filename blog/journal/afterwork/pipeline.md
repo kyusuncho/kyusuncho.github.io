@@ -1,6 +1,7 @@
 ---
 title: Chapter 4 — 매일 밤 데이터를 새로 만드는 일
-parent: 퇴근하구 (AfterWork)
+parent: 퇴근하구 개발 일지
+grandparent: Journal
 nav_order: 4
 card_title: 매일 밤 데이터를 새로 만드는 일
 card_eyebrow: Chapter 4
@@ -18,7 +19,7 @@ card_tags: airflow, docker, neon, data-pipeline
 
 ## 배치가 아니면 안 되는 이유
 
-[Chapter 1]({% link projects/afterwork/hypothesis.md %})의 제약을 다시 꺼내면 답은 정해져 있다.
+[Chapter 1]({% link journal/afterwork/hypothesis.md %})의 제약을 다시 꺼내면 답은 정해져 있다.
 
 - data.go.kr 개발 계정은 **1일 1,000건**이다. 사용자 요청마다 원본을 호출하면 데모 한 번에 소진된다.
 - 임베딩은 과금된다. 같은 텍스트를 두 번 임베딩하는 건 돈을 두 번 내는 것이다.

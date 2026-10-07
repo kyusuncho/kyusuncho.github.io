@@ -1,6 +1,7 @@
 ---
 title: Chapter 1 — 프로젝트 소개
-parent: RV Badminton App
+parent: RV Badminton 개발 일지
+grandparent: Journal
 nav_order: 1
 card_title: 프로젝트 소개
 card_eyebrow: Chapter 1

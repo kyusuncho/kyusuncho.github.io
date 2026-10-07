@@ -74,9 +74,19 @@ nav_exclude: true        # hides from nav; page still builds & is reachable by U
 Also useful: `search_exclude: true` (omit from search), `published: false` (don't build at all).
 Existing examples to copy from: `blog/search.md`, `blog/minimal-test.md`.
 
+## Projects vs Journal
+
+- `blog/projects/<name>.md` — **one page per project**, a portfolio entry: 문제 → 해결 → 결과,
+  then 배운 것. Why and what was achieved, not how. Ends with links into its journal series.
+- `blog/journal/<name>/` — the multi-chapter "how" for a project. `journal/index.md`
+  is the top-level **Journal** nav section (not a child of Projects, so the Projects grid stays
+  pure portfolio). Each series index is titled `<Project> 개발 일지` — distinct from the
+  portfolio page's title, since `parent:` resolves by title — and chapters set
+  `parent: <Project> 개발 일지` + `grandparent: Journal`.
+
 ## Section index pages: the child list is a card grid
 
-Any page with `has_children: true` (Projects, Publications, RV Badminton App) automatically
+Any page with `has_children: true` (Projects, Publications, Journal and its series) automatically
 lists its children below the content. That list renders as **post cards** — thumbnail,
 accent eyebrow, title, blurb, tag chips — not bullets. Nothing is written in the index page
 itself: each **child** describes its own card through front matter.

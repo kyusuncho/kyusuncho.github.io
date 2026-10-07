@@ -1,6 +1,7 @@
 ---
 title: Chapter 3 — PointCalculator, 두 번째
-parent: RV Badminton App
+parent: RV Badminton 개발 일지
+grandparent: Journal
 nav_order: 3
 card_title: PointCalculator, 두 번째
 card_eyebrow: Chapter 3
@@ -18,7 +19,7 @@ card_tags: fastapi, spring-boot, duckdb, redis, event-replay
 > - **게임포인트 참여 가중치** — 그날 몇 명과 쳤는지로 점수에 배율을 먹인다. 계수를 0.6에서 1.0으로 올려, 30명 정모에서 최고/최저 격차가 1.9배에서 2.4배로 벌어졌다.
 > - **출석 보너스 / 페널티** — 하루가 끝날 때 자격 있는 회원 전원에게 ±1을 준다. 이 값이 다음 정모의 시작 MMR이 되기 때문에 표시용 보정이 될 수 없고, 그래서 재계산 단위가 경기 순에서 하루 순으로 바뀌었다.
 
-> **RV Badminton** 시리즈 세 번째 글이다. [Chapter 2]({% link projects/rv-badminton-app/pointcalculator.md %})에서 포인트 계산을 Python/FastAPI 서비스로 떼어낸 이유와 "필요한 만큼만 재연"하는 구조를 다뤘다. 이 글은 그 위에서 규칙 자체가 바뀐 이야기다.
+> **RV Badminton** 시리즈 세 번째 글이다. [Chapter 2]({% link journal/rv-badminton-app/pointcalculator.md %})에서 포인트 계산을 Python/FastAPI 서비스로 떼어낸 이유와 "필요한 만큼만 재연"하는 구조를 다뤘다. 이 글은 그 위에서 규칙 자체가 바뀐 이야기다.
 
 ---
 
