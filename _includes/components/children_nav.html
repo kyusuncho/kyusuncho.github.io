@@ -71,6 +71,14 @@
 
 {%- endunless -%}
 
+{%- comment -%}
+  `all=true` above also returns nav_exclude'd children; an archived page is
+  hidden from the sidebar, so it must not resurface as a card either.
+{%- endcomment -%}
+{%- if nav_children -%}
+  {%- assign nav_children = nav_children | where_exp: "c", "c.nav_exclude != true" -%}
+{%- endif -%}
+
 {%- if nav_children.size >= 1 -%}
 
   {%- if page.child_nav_order == 'desc' or page.child_nav_order == 'reversed' -%}

@@ -1,4 +1,7 @@
 ---
+nav_exclude: true      # archived — kept on disk, unlinked
+search_exclude: true
+sitemap: false
 title: 퇴근하구 (AfterWork)
 parent: Projects
 nav_order: 2
