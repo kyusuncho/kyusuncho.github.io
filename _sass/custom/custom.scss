@@ -288,11 +288,11 @@ $toc-aside-breakpoint: $nav-width + $content-width + $toc-aside-width +
 
 // Homepage intro photo: floated so the intro text wraps fluidly around it.
 .profile-photo {
-  float: left;
+  float: right;
   width: 220px;
   max-width: 40%;
   height: auto;
-  margin: $sp-1 $sp-5 $sp-3 0;
+  margin: $sp-1 0 $sp-3 $sp-5;
   border-radius: $border-radius;
 }
 
