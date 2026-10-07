@@ -22,3 +22,12 @@
 <link rel="icon" type="image/png" sizes="16x16" href="{{ '/assets/images/favicon/favicon-16x16.png' | relative_url }}">
 <link rel="icon" type="image/png" sizes="96x96" href="{{ '/assets/images/favicon/favicon-96x96.png' | relative_url }}">
 <link rel="apple-touch-icon" sizes="180x180" href="{{ '/assets/images/favicon/apple-touch-icon.png' | relative_url }}">
+
+{%- comment -%}
+  Journal is personal: its sidebar entry shows only while reading a journal page.
+  The sidebar HTML is include_cached (identical on every page), so it can't be
+  varied per page in Liquid; instead non-journal pages hide the entry with CSS.
+{%- endcomment -%}
+{%- unless page.url contains '/blog/journal/' -%}
+<style>.site-nav .nav-list-item:has(> .nav-list-link[href$="/blog/journal/"]) { display: none; }</style>
+{%- endunless -%}
